@@ -9,40 +9,16 @@
 		
 		public function about() {
 			return array(
-				'name'			=> 'Import Manager',
-				'version'		=> '1.002',
-				'release-date'	=> '2009-01-06',
+				'name'			=> 'XML Importer',
+				'version'		=> '0.1',
+				'release-date'	=> '2009-12-28',
 				'author'		=> array(
-					'name'			=> 'Rowan Lewis',
-					'website'		=> 'http://pixelcarnage.com/',
-					'email'			=> 'rowan@pixelcarnage.com'
+					'name'			=> 'Nick Dunn, Rowan Lewis'
 				),
 				'description' => 'Import data from XML documents directly into Symphony.'
 			);
 		}
-		
-		public function uninstall() {
-			$this->_Parent->Database->query("DROP TABLE `tbl_xmlimporter_templates`");
-			$this->_Parent->Database->query("DROP TABLE `tbl_xmlimporter_maps`");
-			$this->_Parent->Database->query("DROP TABLE `tbl_xmlimporter_logs`");
-		}
-		
-		public function install() {
-			$this->_Parent->Database->query("
-				CREATE TABLE IF NOT EXISTS `tbl_xmlimporter_logs` (
-					`id` int(11) NOT NULL auto_increment,
-					`template_id` int(11) NOT NULL,
-					`time` int(11) NOT NULL,
-					`log` text default NULL,
-					PRIMARY KEY (`id`),
-					KEY `template_id` (`template_id`),
-					KEY `time` (`time`)
-				)
-			");
-			
-			return true;
-		}
-		
+				
 		public function getSubscribedDelegates() {
 			return array(
 				array(
