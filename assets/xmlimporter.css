@@ -1,0 +1,7 @@
+div.subsection div.actions a {
+	visibility: hidden; 
+}
+
+div.section-fields {
+	display: none;
+}
