@@ -19,9 +19,11 @@ var XmlImporter = {
 			self.showSectionFields($(this).val());
 		});
 		
-		$('div.section-fields').each(function() {
+		$('ol.section-fields').symphonyDuplicator();
+		
+		$('ol.section-fields').each(function() {
 			var checkboxes = $('input[type=checkbox]', $(this));
-			checkboxes.bind('click', function() {
+			checkboxes.live('click', function() {
 				checkboxes.each(function() {
 					$(this).removeAttr('checked');
 				});
@@ -31,7 +33,7 @@ var XmlImporter = {
 	},
 	
 	showSectionFields: function(id) {		
-		$('div.section-fields').hide();
+		$('ol.section-fields').hide();
 		$('#section-' + id).show();
 	}
 }

@@ -3,7 +3,10 @@
 	require_once(TOOLKIT . '/class.gateway.php');
 	require_once(TOOLKIT . '/class.administrationpage.php');
 	
-	class contentExtensionXmlImporterImport extends AdministrationPage {
+	require_once(EXTENSIONS . '/xmlimporter/lib/class.xmlimporter.php');
+	require_once(EXTENSIONS . '/xmlimporter/lib/class.xmlimportermanager.php');
+	
+	class ContentExtensionXmlImporterImport extends AdministrationPage {
 		protected $_driver = null;
 		protected $_uri = null;
 		protected $_fields = array();
@@ -16,38 +19,9 @@
 		}
 		
 		public function build($context) {
-			if (@$context[0] == 'edit' or @$context[0] == 'new') {
-				$this->__prepareEdit($context);
-				
-			} else {
-				$this->__prepareIndex();
-			}
+			$this->__prepareIndex();
 			
 			parent::build($context);
-		}
-		
-	/*-------------------------------------------------------------------------
-		Edit
-	-------------------------------------------------------------------------*/
-		
-		public function __prepareEdit($context) {
-			
-		}
-		
-		public function __actionNew() {
-			$this->__actionEdit();
-		}
-		
-		public function __actionEdit() {
-			
-		}
-		
-		public function __viewNew() {
-			self::__viewEdit();
-		}
-		
-		public function __viewEdit() {
-			
 		}
 		
 	/*-------------------------------------------------------------------------
@@ -59,11 +33,9 @@
 		protected $_status = null;
 		
 		public function __prepareIndex() {
-			header('content-type: text/plain');
-			
 			$this->_fields = @$_REQUEST['fields'];
 			
-			$importManager = new XmlImporter($this->_Parent);
+			$importManager = new XmlImporterManager($this->_Parent);
 			$this->_importers = $importManager->listAll();
 			
 			// Import now?
@@ -96,7 +68,7 @@
 				// Validate data:
 				$this->_status = $this->_importer->validate($gateway->exec());
 				
-				if ($this->_status == Importer::__OK__) {
+				if ($this->_status == XMLImporter::__OK__) {
 					$this->_importer->commit();
 				}
 			}
@@ -106,10 +78,6 @@
 			$this->setPageType('form');
 			$this->setTitle('Symphony &ndash; Import');
 			$this->appendSubheading("Import");
-			
-			$this->addScriptToHead(URL . '/extensions/xmlimporter/assets/jquery.js');
-			$this->addScriptToHead(URL . '/extensions/xmlimporter/assets/form.js');
-			$this->addStylesheetToHead(URL . '/extensions/xmlimporter/assets/form.css', 'screen');
 			
 		// Essentials ---------------------------------------------------------
 			
@@ -154,6 +122,11 @@
 			$label->appendChild($input);
 			
 			$fieldset->appendChild($label);
+			
+			$help = new XMLElement('p');
+			$help->setAttribute('class', 'help');
+			$help->setValue(__('Alternatively, you can append <code>?importer=source-url</code> to the URL.'));
+			$fieldset->appendChild($help);
 			$this->Form->appendChild($fieldset);
 			
 		// Report -------------------------------------------------------------
@@ -166,7 +139,7 @@
 				$fieldset->appendChild(new XMLElement('legend', 'Report'));
 				
 				// Markup invalid:
-				if ($this->_status == Importer::__ERROR_PREPARING__) {
+				if ($this->_status == XMLImporter::__ERROR_PREPARING__) {
 					$fieldset->appendChild(new XMLElement(
 						'h3', 'Import Failed'
 					));
@@ -178,9 +151,10 @@
 					}
 					
 					$fieldset->appendChild($list);
-					
+				}
+				
 				// Invalid entry:
-				} else if ($this->_status == Importer::__ERROR_VALIDATING__) {
+				else if ($this->_status == XMLImporter::__ERROR_VALIDATING__) {
 					$fieldset->appendChild(new XMLElement(
 						'h3', 'Import Failed'
 					));
@@ -244,9 +218,10 @@
 							"<code>" . $values_array . "</code>"
 						));
 					}
-					
+				}
+				
 				// Passed:
-				} else {
+				else {
 					$fieldset->appendChild(new XMLElement(
 						'h3', 'Import Complete'
 					));
