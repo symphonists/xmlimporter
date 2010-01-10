@@ -89,6 +89,10 @@
 				usort($results, array($this, 'getXMLImportersSortByName'));
 			}
 			
+			else if ($column == 'description') {
+				usort($results, array($this, 'getXMLImportersSortByDescription'));
+			}
+			
 			else if ($column == 'url') {
 				usort($results, array($this, 'getXMLImportersSortByURL'));
 			}
@@ -117,6 +121,10 @@
 		
 		protected function getXMLImportersSortByName($a, $b) {
 			return strcmp($a['about']['name'], $b['about']['name']);
+		}
+		
+		protected function getXMLImportersSortByDescription($a, $b) {
+			return strcmp($a['about']['description'], $b['about']['description']);
 		}
 		
 		protected function getXMLImportersSortByURL($a, $b) {

@@ -637,7 +637,7 @@
 				'name'			=> array(__('Name'), true),
 				'url'			=> array(__('URL'), true),
 				'elements'		=> array(__('Included Elements'), true),
-				'description'	=> array(__('Description'), false),
+				'description'	=> array(__('Description'), true),
 				'modified'		=> array(__('Modified'), true),
 				'author'		=> array(__('Author'), true)
 			);
