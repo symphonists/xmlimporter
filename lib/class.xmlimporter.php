@@ -63,7 +63,7 @@
 			return null;
 		}
 		
-		public function validate() {
+		public function validate($source = null) {
 			if (!function_exists('handleXMLError')) {
 				function handleXMLError($errno, $errstr, $errfile, $errline, $context) {
 					$context['self']->_errors[] = $errstr;
@@ -78,6 +78,10 @@
 			
 			$self = $this; // Fucking PHP...
 			$options = $this->options();
+			
+			if (!is_null($source)) {
+				$options['source'] = $source;
+			}
 			
 			// Fetch document:
 			$gateway = new Gateway();

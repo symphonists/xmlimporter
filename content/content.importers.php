@@ -52,12 +52,17 @@
 		
 		public function __prepareRun($context) {
 			$importManager = new XmlImporterManager($this->_Parent);
+			$source = null;
+			
+			if (isset($_GET['source'])) {
+				$source = $_GET['source'];
+			}
 			
 			array_shift($context);
 			
 			foreach ($context as $handle) {
 				$importer = $importManager->create($handle);
-				$status = $importer->validate();
+				$status = $importer->validate($source);
 				
 				if ($status == XMLImporter::__OK__) {
 					$importer->commit();
