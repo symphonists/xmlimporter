@@ -503,7 +503,7 @@
 					
 					foreach ($section->fetchFields() as $index => $field) {
 						$field_id = $field->get('id');
-						$field_name = "mapping[-1]";
+						$field_name = "fields[fields][-1]";
 						
 						$li = new XMLElement('li');
 						$li->appendChild(new XMLElement('h4', $field->get('label')));
