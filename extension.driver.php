@@ -10,8 +10,8 @@
 		public function about() {
 			return array(
 				'name'			=> 'XML Importer',
-				'version'		=> '0.1',
-				'release-date'	=> '2009-12-28',
+				'version'		=> '0.10',
+				'release-date'	=> '2010-01-10',
 				'author'		=> array(
 					'name'			=> 'Nick Dunn, Rowan Lewis'
 				),
