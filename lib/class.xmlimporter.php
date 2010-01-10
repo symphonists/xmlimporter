@@ -1,5 +1,6 @@
 <?php
 	
+	require_once(TOOLKIT . '/class.gateway.php');
 	require_once(TOOLKIT . '/class.fieldmanager.php');
 	require_once(TOOLKIT . '/class.entrymanager.php');
 	require_once(TOOLKIT . '/class.sectionmanager.php');
@@ -24,23 +25,7 @@
 			return array();
 		}
 		
-		public function getSection() {
-			return null;
-		}
-		
-		public function getRootExpression() {
-			return '';
-		}
-		
-		public function getUniqueField() {
-			return '';
-		}
-		
-		public function canUpdate() {
-			return true;
-		}
-		
-		public function getFieldMapping() {
+		public function options() {
 			return array();
 		}
 		
@@ -61,28 +46,29 @@
 				foreach ($matches as $match) {
 					if ($match instanceof DOMAttr or $match instanceof DOMText) {
 						$value .= $match->nodeValue;
-					} else {
+					}
+					
+					else {
 						$value .= $xml->saveXML($match);
 					}
 				}
 				
 				return $value;
-				
-			} else if (!is_null($matches)) {
+			}
+			
+			else if (!is_null($matches)) {
 				return (string)$matches;
 			}
 			
 			return null;
 		}
 		
-		public function validate($data) {
+		public function validate() {
 			if (!function_exists('handleXMLError')) {
 				function handleXMLError($errno, $errstr, $errfile, $errline, $context) {
 					$context['self']->_errors[] = $errstr;
 				}
 			}
-			
-			if (empty($data)) return null;
 			
 			$entryManager = new EntryManager($this->_Parent);
 			$fieldManager = new FieldManager($this->_Parent);
@@ -91,6 +77,21 @@
 			set_error_handler('handleXMLError');
 			
 			$self = $this; // Fucking PHP...
+			$options = $this->options();
+			
+			// Fetch document:
+			$gateway = new Gateway();
+			$gateway->init();
+			$gateway->setopt('URL', $options['source']);
+			$gateway->setopt('TIMEOUT', 6);
+			$data = $gateway->exec();
+			
+			if (empty($data)) {
+				$this->_errors[] = __('No data to import.');
+				$passed = false;
+			}
+			
+			// Load document:
 			$xml = new DOMDocument();
 			$xml->loadXML($data);
 			
@@ -102,34 +103,36 @@
 			// Invalid Markup:
 			if (empty($xml)) {
 				$passed = false;
-				
+			}
+			
 			// Invalid Expression:
-			} else if (($entries = $xpath->query(stripslashes($this->getRootExpression()))) === false) {
-				$this->_errors[] = sprintf(
-					'Root expression <code>%s</code> is invalid.',
-					htmlentities(stripslashes($this->getRootExpression()), ENT_COMPAT, 'UTF-8')
+			else if (($entries = $xpath->query($options['included-elements'])) === false) {
+				$this->_errors[] = __(
+					'Root expression <code>%s</code> is invalid.', array(
+						General::sanitize($options['included-elements'])
+					)
 				);
 				$passed = false;
-				
+			}
+			
 			// No Entries:
-			} else if (empty($entries)) {
-				$this->_errors[] = 'No entries to import.';
+			else if (is_null($entries) or $entries->length == 0) {
+				$this->_errors[] = __('No entries to import.');
 				$passed = false;
-				
+			}
+			
 			// Test expressions:
-			} else {
-				foreach ($this->getFieldMapping() as $mapping) {
+			else foreach ($options['fields'] as $mapping) {
+				if ($xpath->evaluate(stripslashes($mapping['xpath'])) === false) {
+					$field = $fieldManager->fetch($mapping['field']);
 					
-					if ($xpath->evaluate(stripslashes($mapping['xpath'])) === false) {
-						$field = $fieldManager->fetch($mapping['field']);
-						
-						$this->_errors[] = sprintf(
-							'\'%s\' expression <code>%s</code> is invalid.',
+					$this->_errors[] = __(
+						'\'%s\' expression <code>%s</code> is invalid.', array(
 							$field->get('label'),
-							htmlentities(stripslashes($mapping['xpath']), ENT_COMPAT, 'UTF-8')
-						);
-						$passed = false;
-					}
+							General::sanitize($mapping['xpath'])
+						)
+					);
+					$passed = false;
 				}
 			}
 			
@@ -137,7 +140,6 @@
 			
 			// Gather data:
 			foreach ($entries as $index => $entry) {
-
 				$this->_entries[$index] = array(
 					'element'	=> $entry,
 					'values'	=> array(),
@@ -145,24 +147,28 @@
 					'entry'		=> null
 				);
 				
-				foreach ($this->getFieldMapping() as $mapping) {					
+				foreach ($options['fields'] as $mapping) {					
 					$value = $this->getExpressionValue($xml, $entry, $xpath, $mapping['xpath'], $debug);
+					
 					if (isset($mapping['php']) && $mapping['php'] != '') {
-						
 						$php = stripslashes($mapping['php']);
 						
 						// static helper
 						if (preg_match('/::/', $php)) {
 							$value = call_user_func_array($php, array($value));
 						}
+						
 						// basic function
 						else {
 							$function = preg_replace('/\$value/', "'" . $value . "'", $php);
+							
 							if (!preg_match('/^return/', $function)) $function = 'return ' . $function;
 							if (!preg_match('/;$/', $function)) $function .= ';';
+							
 							$value = @eval($function);
 						}
 					}
+					
 					$this->_entries[$index]['values'][$mapping['field']] = $value;					
 				}
 			}
@@ -171,9 +177,8 @@
 			$passed = true;
 			
 			foreach ($this->_entries as &$current) {
-				
 				$entry = $entryManager->create();
-				$entry->set('section_id', $this->getSection());
+				$entry->set('section_id', $options['section']);
 				$entry->set('author_id', $this->_Parent->Author->get('id'));
 				$entry->set('creation_date', DateTimeObj::get('Y-m-d H:i:s'));
 				$entry->set('creation_date_gmt', DateTimeObj::getGMT('Y-m-d H:i:s'));
@@ -195,8 +200,9 @@
 				// Validate:
 				if (__ENTRY_FIELD_ERROR__ == $entry->checkPostData($values, $current['errors'])) {
 					$passed = false;
-					
-				} elseif (__ENTRY_OK__ != $entry->setDataFromPost($values, $error, true)) {
+				}
+				
+				elseif (__ENTRY_OK__ != $entry->setDataFromPost($values, $error, true)) {
 					$passed = false;
 				}
 				
@@ -213,48 +219,46 @@
 		public function commit() {
 			// Find existing entries:
 			
+			$options = $this->options();
 			$existing = array();
 			
-			if ($this->getUniqueField() != '') {
+			if ((integer)$options['unique-field'] > 0) {
 				$entryManager = new EntryManager($this->_Parent);
 				$fieldManager = new FieldManager($this->_Parent);
-				$field = $fieldManager->fetch($this->getUniqueField());
+				$field = $fieldManager->fetch($options['unique-field']);
 				
-				if (!empty($field)) {
-					foreach ($this->_entries as $index => $current) {
-						
-						$entry = $current['entry'];
-						
-						$data = $entry->getData($this->getUniqueField());
-						$where = $joins = $group = null;
-						
-						$field->buildDSRetrivalSQL($data, $joins, $where);
-						
-						$group = $field->requiresSQLGrouping();
-						$entries = $entryManager->fetch(null, $this->getSection(), 1, null, $where, $joins, false, true);						
-						
-						if (is_array($entries) && count($entries) > 0) {
-							$existing[$index] = $entries[0]->get('id');
-						} else {
-							$existing[$index] = null;
-						}
-						
+				if (!empty($field)) foreach ($this->_entries as $index => $current) {
+					$entry = $current['entry'];
+					
+					$data = $entry->getData($options['unique-field']);
+					$where = $joins = $group = null;
+					
+					$field->buildDSRetrivalSQL($data, $joins, $where);
+					
+					$group = $field->requiresSQLGrouping();
+					$entries = $entryManager->fetch(null, $options['section'], 1, null, $where, $joins, false, true);
+					
+					if (is_array($entries) && count($entries) > 0) {
+						$existing[$index] = $entries[0]->get('id');
+					}
+					
+					else {
+						$existing[$index] = null;
 					}
 				}
 			}
 			
 			foreach ($this->_entries as $index => $current) {
-				
 				$entry = $current['entry'];
-								
+				
 				// Matches an existing entry
 				if (!empty($existing[$index])) {
-
 					// update
-					if ($this->canUpdate()) {
+					if ($options['can-update'] == 'yes') {
 						$entry->set('id', $existing[$index]);
 						$entry->set('importer_status', 'updated');
 					}
+					
 					// skip
 					else {
 						$entry->set('importer_status', 'skipped');
@@ -265,8 +269,8 @@
 				$entry->commit();
 				
 				$status = $entry->get('importer_status');
+				
 				if (!$status) $entry->set('importer_status', 'created');
-
 			}
 		}
 	}

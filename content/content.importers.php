@@ -1,5 +1,5 @@
 <?php
-
+	
 	require_once(TOOLKIT . '/class.administrationpage.php');
 	require_once(TOOLKIT . '/class.sectionmanager.php');
 	
@@ -11,13 +11,10 @@
 		protected $_action = '';
 		protected $_driver = null;
 		protected $_editing = false;
-		protected $_errors = array(
-			'about'		=> array(),
-			'options'	=> array(),
-			'other'		=> ''
-		);
+		protected $_errors = array();
 		protected $_fields = array();
 		protected $_status = '';
+		protected $_runs = array();
 		protected $_importers = array();
 		protected $_uri = null;
 		protected $_valid = true;
@@ -35,12 +32,11 @@
 		
 		public function build($context) {
 			if (@$context[0] == 'edit' or @$context[0] == 'new') {
-				if ($this->_editing = $context[0] == 'edit') {
-					$this->_fields = $this->_driver->getXMLImporter($context[1]);
-				}
-				
-				$this->_handle = $context[1];
-				$this->_status = $context[2];
+				$this->__prepareEdit($context);
+			}
+			
+			else if (@$context[0] == 'run') {
+				$this->__prepareRun($context);
 			}
 			
 			else {
@@ -48,6 +44,171 @@
 			}
 			
 			parent::build($context);
+		}
+		
+	/*-------------------------------------------------------------------------
+		Run
+	-------------------------------------------------------------------------*/
+		
+		public function __prepareRun($context) {
+			$importManager = new XmlImporterManager($this->_Parent);
+			
+			array_shift($context);
+			
+			foreach ($context as $handle) {
+				$importer = $importManager->create($handle);
+				$status = $importer->validate();
+				
+				if ($status == XMLImporter::__OK__) {
+					$importer->commit();
+				}
+				
+				$this->_runs[] = array(
+					'importer'	=> $importer,
+					'status'	=> $status
+				);
+			}
+		}
+		
+		public function __viewRun() {
+			$this->setPageType('form');
+			$this->setTitle(__('Symphony') . ' &ndash; ' . __('XML Importers') . ' &ndash; ' . __('Run'));
+			$this->appendSubheading("<a href=\"{$this->_uri}/importers/\">" . __('XML Importers') . "</a> &raquo; " . __('Run'));
+			
+			foreach ($this->_runs as $run) {
+				$importer = $run['importer'];
+				$status = $run['status'];
+				$entries = $importer->getEntries();
+				$about = $importer->about();
+				
+				$fieldset = new XMLElement('fieldset');
+				$fieldset->setAttribute('class', 'settings');
+				$fieldset->appendChild(new XMLElement('legend', $about['name']));
+				
+				// Markup invalid:
+				if ($status == XMLImporter::__ERROR_PREPARING__) {
+					$fieldset->appendChild(new XMLElement(
+						'h3', 'Import Failed'
+					));
+					
+					$list = new XMLElement('ol');
+					
+					foreach ($importer->getErrors() as $error) {
+						$list->appendChild(new XMLElement('li', $error));
+					}
+					
+					$fieldset->appendChild($list);
+				}
+				
+				// Invalid entry:
+				else if ($status == XMLImporter::__ERROR_VALIDATING__) {
+					$fieldset->appendChild(new XMLElement(
+						'h3', 'Import Failed'
+					));
+					
+					// Gather statistics:
+					$failed = array();
+					
+					foreach ($entries as $index => $current) if (!is_null($current['errors'])) {
+						$current['position'] = $index + 1;
+						$failed[] = $current;
+					}
+					
+					$fieldset->appendChild(new XMLElement(
+						'p', sprintf(
+							'Import failed because %d entries did not validate, a total of %d entries passed.',
+							count($failed), count($entries) - count($failed)
+						)
+					));
+					
+					foreach ($failed as $index => $current) {
+						$fieldset->appendChild(new XMLElement(
+							'h3', sprintf('Import entry #%d', $current['position'])
+						));
+						
+					// Errors -------------------------------------------------
+						
+						$list = new XMLElement('ol');
+						
+						foreach ($current['errors'] as $error) {
+							$list->appendChild(new XMLElement('li', $error));
+						}
+						
+						$fieldset->appendChild($list);
+						
+					// Source -------------------------------------------------
+						
+						$entry = $current['element'];
+						$xml = new DOMDocument();
+						$xml->preserveWhiteSpace = false;
+						$xml->formatOutput = true;
+						
+						$xml->loadXML($entry->ownerDocument->saveXML($entry));
+						
+						$source = htmlentities($xml->saveXML($xml->documentElement), ENT_COMPAT, 'UTF-8');
+						
+						$fieldset->appendChild(new XMLElement(
+							'pre', "<code>{$source}</code>"
+						));
+						
+						foreach ($current['values'] as $field => $value) {
+							$values[$field] = htmlentities($value);
+						}
+						
+						ob_start();
+						var_dump($values);
+						$values_array = ob_get_contents();
+						ob_end_clean();
+						
+						$fieldset->appendChild(new XMLElement(
+							'pre',
+							"<code>" . $values_array . "</code>"
+						));
+					}
+				}
+				
+				// Passed:
+				else {
+					$fieldset->appendChild(new XMLElement(
+						'h3', 'Import Complete'
+					));
+					
+					$importer_result = array(
+						'created' => 0,
+						'updated' => 0,
+						'skipped' => 0
+					);
+					
+					foreach ($entries as $entry) {
+						$importer_result[$entry['entry']->get('importer_status')]++;
+					}
+					
+					$fieldset->appendChild(new XMLElement(
+						'p', sprintf(
+							'Import completed successfully: %d new entries were created, %d updated, and %d skipped.',
+							$importer_result['created'],
+							$importer_result['updated'],
+							$importer_result['skipped']
+						)
+					));
+					
+				}
+				
+				$this->Form->appendChild($fieldset);
+			}
+		}
+		
+	/*-------------------------------------------------------------------------
+		Edit
+	-------------------------------------------------------------------------*/
+		
+		public function __prepareEdit($context) {
+			if ($this->_editing = $context[0] == 'edit') {
+				$this->_fields = $this->_driver->getXMLImporter($context[1]);
+			}
+			
+			$this->_handle = $context[1];
+			$this->_status = $context[2];
 		}
 		
 		public function __actionNew() {
@@ -75,40 +236,33 @@
 			
 		// Validate -----------------------------------------------------------
 			
-			$fields = array();
+			$fields = $_POST['fields'];
 			
-			// About info:
-			if (!empty($_POST['fields']['about']['name'])) {
-				$fields['about']['name'] = $_POST['fields']['about']['name'];
+			// Name:
+			if (!isset($fields['about']['name']) or empty($fields['about']['name'])) {
+				$this->_errors['name'] = 'Name must not be empty.';
 			}
 			
-			else {
-				$this->_errors['about']['name'] = 'Name must not be empty.';
+			// Source:
+			if (!isset($fields['source']) or empty($fields['source'])) {
+				$this->_errors['source'] = 'Source must not be empty.';
 			}
 			
-			if (!empty($_POST['fields']['about']['description'])) {
-				$fields['about']['description'] = $_POST['fields']['about']['description'];
+			else if (!filter_var($fields['source'], FILTER_VALIDATE_URL)) {
+				$this->_errors['source'] = 'Source is not a valid URL.';
 			}
 			
-			$fields['section'] = (integer)@$_POST['fields']['section'];
-			$fields['for-each'] = (string)@$_POST['fields']['for-each'];
-			$fields['unique'] = (integer)@$_POST['fields']['unique'];
-			$fields['can-update'] = (@$_POST['fields']['can-update'] == 'yes' ? 'yes' : 'no');
+			// TODO: Validate included-elements
+			
 			$fields['about']['file'] = @$this->_fields['about']['file'];
 			$fields['about']['created'] = @$this->_fields['about']['created'];
 			$fields['about']['updated'] = @$this->_fields['about']['updated'];
-			
-			// Field mapping:
-			$mappings = array();
-			
-			if (@is_array($_POST['mapping'])) foreach ($_POST['mapping'] as $mapping) {
-				$mappings[] = $mapping;
-			}
-			
-			$fields['mapping'] = $mappings;
+			$fields['can-update'] = (@$fields['can-update'] == 'yes' ? 'yes' : 'no');
+			$fields['unique-field'] = (integer)@$fields['unique-field'];
+			$fields['section'] = (integer)@$fields['section'];
 			$this->_fields = $fields;
 			
-			if (!empty($this->_errors['about'])) {
+			if (!empty($this->_errors)) {
 				$this->_valid = false;
 				return;
 			}
@@ -140,7 +294,7 @@
 			$this->addStylesheetToHead(URL . '/extensions/xmlimporter/assets/xmlimporter.css', 'screen', 100);
 			$this->addScriptToHead(URL . '/extensions/xmlimporter/assets/xmlimporter.js', 101);
 			
-		// Status: -----------------------------------------------------------
+		// Status: ------------------------------------------------------------
 			
 			if (!$this->_valid) {
 				$message = __('An error occurred while processing this form <a href="#error">See below for details.</a>');
@@ -200,8 +354,8 @@
 				General::sanitize(@$this->_fields['about']['name'])
 			));
 			
-			if (isset($this->_errors['about']['name'])) {
-				$label = Widget::wrapFormElementWithError($label, $this->_errors['about']['name']);
+			if (isset($this->_errors['name'])) {
+				$label = Widget::wrapFormElementWithError($label, $this->_errors['name']);
 			}
 			
 			$group->appendChild($label);
@@ -212,59 +366,71 @@
 				General::sanitize(@$this->_fields['about']['description'])
 			));
 			
-			if (isset($this->_errors['about']['description'])) {
-				$label = Widget::wrapFormElementWithError($label, $this->_errors['about']['description']);
-			}
-			
 			$group->appendChild($label);
 			$fieldset->appendChild($group);
+			$this->Form->appendChild($fieldset);
 			
-		// Section -------------------------------------------------------------
+		// Source -----------------------------------------------------------
 			
-			$group = new XMLElement('div');
-			$group->setAttribute('class', 'group');
+			$fieldset = new XMLElement('fieldset');
+			$fieldset->setAttribute('class', 'settings');
+			$fieldset->appendChild(new XMLElement('legend', __('Source')));
 			
-			$label = Widget::Label(__('Root Expression (for each)'));		
+			$label = Widget::Label(__('URL'));		
 			$label->appendChild(Widget::Input(
-				'fields[for-each]', General::sanitize(@$this->_fields['for-each'])
+				'fields[source]', General::sanitize(@$this->_fields['source'])
 			));
 			
-			$group->appendChild($label);
+			if (isset($this->_errors['source'])) {
+				$label = Widget::wrapFormElementWithError($label, $this->_errors['source']);
+			}
+			
+			$fieldset->appendChild($label);
+			
+			$help = new XMLElement('p');
+			$help->setAttribute('class', 'help');
+			$help->setValue(__('Enter the URL of the XML document you want to process.'));
+			$fieldset->appendChild($help);
+			
+			$label = Widget::Label(__('Included Elements'));		
+			$label->appendChild(Widget::Input(
+				'fields[included-elements]', General::sanitize(@$this->_fields['included-elements'])
+			));
+			
+			if (isset($this->_errors['included-elements'])) {
+				$label = Widget::wrapFormElementWithError($label, $this->_errors['included-elements']);
+			}
+			
+			$fieldset->appendChild($label);
+			
+			$help = new XMLElement('p');
+			$help->setAttribute('class', 'help');
+			$help->setValue(__('Use an XPath expression to select which elements from the source XML to include.'));
+			$fieldset->appendChild($help);
+			
+			$this->Form->appendChild($fieldset);
+			
+		// Section ------------------------------------------------------------
 			
 			$sectionManager = new SectionManager($this->_Parent);
 			$sections = $sectionManager->fetch(NULL, 'ASC', 'name');
 			$options = array();
 			
-			if (is_array($sections)) foreach ($sections as $section) {
-				$options[] = array($section->get('id'), (@$this->_fields['section'] == $section->get('id')), $section->get('name'));
-			}
-			
-			$label = Widget::Label(__('Section'));		
-			$label->appendChild(Widget::Select(
-				'fields[section]', $options
-			));
-			
-			$group->appendChild($label);
-			$fieldset->appendChild($group);
-			
-			$label = Widget::Label();
-			$input = Widget::Input('fields[can-update]', 'yes', 'checkbox');
-			
-			if (@$this->_fields['can-update'] == 'yes') {
-				$input->setAttribute('checked', 'checked');
-			}
-			
-			$label->setValue($input->generate(false) . ' Can update existing entries');
-			$fieldset->appendChild($label);
-			
-			$this->Form->appendChild($fieldset);
-			
-		// Fields -----------------------------------------------------------
-			
 			if (is_array($sections)) {
 				$fieldset = new XMLElement('fieldset');
 				$fieldset->setAttribute('class', 'settings');
-				$fieldset->appendChild(new XMLElement('legend', __('Fields')));
+				$fieldset->appendChild(new XMLElement('legend', __('Section')));
+				
+				if (is_array($sections)) foreach ($sections as $section) {
+					$options[] = array($section->get('id'), (@$this->_fields['section'] == $section->get('id')), $section->get('name'));
+				}
+				
+				$label = Widget::Label(__('Section'));		
+				$label->appendChild(Widget::Select(
+					'fields[section]', $options
+				));
+				
+				$fieldset->appendChild($label);
 				
 				$label = new XMLElement('h3', __('Fields'));
 				$label->setAttribute('class', 'label');
@@ -277,13 +443,13 @@
 					
 					foreach ($section->fetchFields() as $index => $field) {
 						$field_id = $field->get('id');
-						$field_name = "mapping[{$index}]";
+						$field_name = "fields[fields][{$index}]";
 						$field_data = null;
 						
-						if (isset($this->_fields['mapping'])) {
-							foreach ($this->_fields['mapping'] as $temp_data) {
+						if (isset($this->_fields['fields'])) {
+							foreach ($this->_fields['fields'] as $temp_data) {
 								if ($temp_data['field'] != $field_id) continue;
-							
+								
 								$field_data = $temp_data;
 							}
 						}
@@ -319,9 +485,9 @@
 						
 						$label = Widget::Label();
 						$label->setAttribute('class', 'meta');
-						$input = Widget::Input("fields[unique]", $field_id, 'radio');
+						$input = Widget::Input("fields[unique-field]", $field_id, 'radio');
 						
-						if (@$this->_fields['unique'] == $field_id) {
+						if (@$this->_fields['unique-field'] == $field_id) {
 							$input->setAttribute('checked', 'checked');
 						}
 						
@@ -358,7 +524,7 @@
 						
 						$label = Widget::Label();
 						$label->setAttribute('class', 'meta');
-						$input = Widget::Input("fields[unique]", $field_id, 'radio');
+						$input = Widget::Input("fields[unique-field]", $field_id, 'radio');
 						
 						$label->setValue($input->generate(false) . ' Is unique');
 						$li->appendChild($label);
@@ -367,6 +533,41 @@
 					
 					$fieldset->appendChild($section_fields);
 				}
+				
+				$label = Widget::Label();
+				$label->setAttribute('class', 'meta');
+				$input = Widget::Input("fields[unique-field]", $field_id, 'radio');
+				
+				if ((integer)@$this->_fields['unique-field'] == 0) {
+					$input->setAttribute('checked', 'checked');
+				}
+				
+				$label->setValue(__(
+					'%s No field is unique', array(
+						$input->generate(false)
+					)
+				));
+				$fieldset->appendChild($label);
+				
+				$help = new XMLElement('p');
+				$help->setAttribute('class', 'help');
+				$help->setValue(__('If a field is flagged as unique, its value will be used to prevent duplicate entries from being created.'));
+				$fieldset->appendChild($help);
+				
+				$label = Widget::Label();
+				$input = Widget::Input('fields[can-update]', 'yes', 'checkbox');
+				
+				if (@$this->_fields['can-update'] == 'yes') {
+					$input->setAttribute('checked', 'checked');
+				}
+				
+				$label->setValue($input->generate(false) . ' Can update existing entries');
+				$fieldset->appendChild($label);
+				
+				$help = new XMLElement('p');
+				$help->setAttribute('class', 'help');
+				$help->setValue(__('Allow entries to be updated from the source, only works when a unique field is chosen.'));
+				$fieldset->appendChild($help);
 				
 				$this->Form->appendChild($fieldset);
 			}
@@ -429,11 +630,11 @@
 		public function __prepareIndex() {
 			$this->_table_columns = array(
 				'name'			=> array(__('Name'), true),
-				'for-each'		=> array(__('Root Expression'), true),
+				'url'			=> array(__('URL'), true),
+				'elements'		=> array(__('Included Elements'), true),
 				'description'	=> array(__('Description'), false),
 				'modified'		=> array(__('Modified'), true),
-				'author'		=> array(__('Author'), true),
-				'run'			=> array(__('Run'), false)
+				'author'		=> array(__('Author'), true)
 			);
 			
 			if (@$_GET['sort'] and $this->_table_columns[$_GET['sort']][1]) {
@@ -482,6 +683,16 @@
 						}
 						
 						redirect("{$this->_uri}/importers/");
+						break;
+						
+					case 'run':
+						$url = '';
+						
+						foreach ($checked as $name) {
+							$url .= "/{$name}";
+						}
+						
+						redirect("{$this->_uri}/importers/run{$url}/");
 						break;
 				}
 			}
@@ -546,33 +757,41 @@
 			
 			else {
 				foreach ($this->_importers as $importer) {
-					$importer = (object)$importer;
-					
 					$col_name = Widget::TableData(
 						Widget::Anchor(
-							$importer->name,
-							"{$this->_uri}/importers/edit/{$importer->handle}/"
+							$importer['about']['name'],
+							"{$this->_uri}/importers/edit/{$importer['about']['handle']}/"
 						)
 					);
-					$col_name->appendChild(Widget::Input("items[{$importer->handle}]", null, 'checkbox'));
+					$col_name->appendChild(Widget::Input("items[{$importer['about']['handle']}]", null, 'checkbox'));
 					
 					$col_date = Widget::TableData(
-						DateTimeObj::get(__SYM_DATETIME_FORMAT__, strtotime($importer->{'updated'}))
+						DateTimeObj::get(__SYM_DATETIME_FORMAT__, strtotime($importer['updated']))
 					);
 					
-					if (!empty($importer->{'for-each'})) {
-						$col_for_each = Widget::TableData(
-							General::sanitize($importer->{'for-each'})
+					if (!empty($importer['source'])) {
+						$col_url = Widget::TableData(
+							General::sanitize($importer['source'])
 						);
 					}
 					
 					else {
-						$col_for_each = Widget::TableData('None', 'inactive');
+						$col_url = Widget::TableData('None', 'inactive');
 					}
 					
-					if (!empty($importer->description)) {
+					if (!empty($importer['included-elements'])) {
+						$col_elements = Widget::TableData(
+							General::sanitize($importer['included-elements'])
+						);
+					}
+					
+					else {
+						$col_elements = Widget::TableData('None', 'inactive');
+					}
+					
+					if (!empty($importer['about']['description'])) {
 						$col_description = Widget::TableData(
-							General::sanitize($importer->description)
+							General::sanitize($importer['about']['description'])
 						);
 					}
 					
@@ -580,36 +799,29 @@
 						$col_description = Widget::TableData('None', 'inactive');
 					}
 					
-					if (isset($importer->author['website'])) {
+					if (isset($importer['about']['author']['website'])) {
 						$col_author = Widget::TableData(Widget::Anchor(
-							$importer->author['name'],
-							General::validateURL($importer->author['website'])
+							$importer['about']['author']['name'],
+							General::validateURL($importer['about']['author']['website'])
 						));
 					}
 					
-					else if (isset($importer->author['email'])) {
+					else if (isset($importer['about']['email'])) {
 						$col_author = Widget::TableData(Widget::Anchor(
-							$importer->author['name'],
-							'mailto:' . $importer->author['email']
+							$importer['about']['author']['name'],
+							'mailto:' . $importer['about']['author']['email']
 						));	
 					}
 					
-					else if (isset($importer->author['name'])) {
-						$col_author = Widget::TableData($importer->author['name']);
+					else if (isset($importer['about']['author']['name'])) {
+						$col_author = Widget::TableData($importer['about']['author']['name']);
 					}
 					
 					else {
 						$col_author = Widget::TableData('None', 'inactive');
 					}
 					
-					$col_run = Widget::TableData(
-						Widget::Anchor(
-							__('Run →'),
-							$this->_uri . "/import/?{$importer->handle}"
-						)
-					);
-					
-					$tableBody[] = Widget::TableRow(array($col_name, $col_for_each, $col_description, $col_date, $col_author, $col_run), null);
+					$tableBody[] = Widget::TableRow(array($col_name, $col_url, $col_elements, $col_description, $col_date, $col_author), null);
 				}
 			}
 			
@@ -625,7 +837,8 @@
 			
 			$options = array(
 				array(null, false, 'With Selected...'),
-				array('delete', false, 'Delete')									
+				array('delete', false, 'Delete'),
+				array('run', false, 'Run')
 			);
 
 			$actions->appendChild(Widget::Select('with-selected', $options));

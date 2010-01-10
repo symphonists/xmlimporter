@@ -22,24 +22,15 @@
 			);	
 		}
 		
-		public function getSection() {
-			return %s;
-		}
-		
-		public function getRootExpression() {
-			return %s;
-		}
-		
-		public function getUniqueField() {
-			return %s;
-		}
-		
-		public function canUpdate() {
-			return %s;
-		}
-		
-		public function getFieldMapping() {
-			return %s;
+		public function options() {
+			return array(
+				'can-update'		=> %s,
+				'fields'			=> %s,
+				'included-elements'	=> %s,
+				'source'			=> %s,
+				'section'			=> %s,
+				'unique-field'		=> %s
+			);
 		}
 		
 		public function allowEditorToParse() {

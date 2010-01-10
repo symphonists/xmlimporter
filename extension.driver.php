@@ -79,12 +79,22 @@
 				
 				if (!$importer->allowEditorToParse()) continue;
 				
-				$results[] = $about;
+				$data = $importer->options();
+				$data['about'] = $about;
+				$results[] = $data;
 			}
 			
 			// Sorting:
 			if ($column == 'name') {
 				usort($results, array($this, 'getXMLImportersSortByName'));
+			}
+			
+			else if ($column == 'url') {
+				usort($results, array($this, 'getXMLImportersSortByURL'));
+			}
+			
+			else if ($column == 'elements') {
+				usort($results, array($this, 'getXMLImportersSortByElements'));
 			}
 			
 			else if ($column == 'modified') {
@@ -106,29 +116,33 @@
 		}
 		
 		protected function getXMLImportersSortByName($a, $b) {
-			return strcmp($a['name'], $b['name']);
+			return strcmp($a['about']['name'], $b['about']['name']);
+		}
+		
+		protected function getXMLImportersSortByURL($a, $b) {
+			return strcmp($a['source'], $b['source']);
+		}
+		
+		protected function getXMLImportersSortByElements($a, $b) {
+			return strcmp($a['included-elements'], $b['included-elements']);
 		}
 		
 		protected function getXMLImportersSortByModified($a, $b) {
-			return strtotime($a['updated']) > strtotime($b['updated']);
+			return strtotime($a['about']['updated']) > strtotime($b['about']['updated']);
 		}
 		
 		protected function getXMLImportersSortByAuthor($a, $b) {
-			return strcmp($a['author']['name'], $b['author']['name']);
+			return strcmp($a['about']['author']['name'], $b['about']['author']['name']);
 		}
 		
 		public function getXMLImporter($name) {
 			$xim = new XMLImporterManager($this->_Parent);
 			$importer = $xim->create($name);
 			
-			return array(
-				'about'			=> $importer->about(),
-				'section'		=> $importer->getSection(),
-				'for-each'		=> $importer->getRootExpression(),
-				'unique'		=> $importer->getUniqueField(),
-				'can-update'	=> ($importer->canUpdate() ? 'yes' : 'no'),
-				'mapping'		=> $importer->getFieldMapping()
-			);
+			$data = $importer->options();
+			$data['about'] = $importer->about();
+			
+			return $data;
 		}
 		
 		public function setXMLImporter(&$name, &$error, $new) {
@@ -210,11 +224,12 @@
 				var_export($new['about']['updated'], true),
 				
 				// Options:
-				var_export($new['section'], true),
-				var_export($new['for-each'], true),
-				var_export($new['unique'], true),
 				var_export($new['can-update'], true),
-				var_export($new['mapping'], true)
+				var_export($new['fields'], true),
+				var_export($new['included-elements'], true),
+				var_export($new['source'], true),
+				var_export($new['section'], true),
+				var_export($new['unique-field'], true)
 			);
 			
 			// Write file to disk:
