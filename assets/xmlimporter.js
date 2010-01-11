@@ -19,7 +19,12 @@ var XmlImporter = {
 			self.showSectionFields($(this).val());
 		});
 		
-		$('ol.section-fields').symphonyDuplicator();
+		$('ol.namespaces-duplicator').symphonyDuplicator({
+			orderable:	true
+		});
+		$('ol.section-fields').symphonyDuplicator({
+			orderable:	true
+		});
 	},
 	
 	showSectionFields: function(id) {		

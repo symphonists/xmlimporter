@@ -27,6 +27,7 @@
 				'can-update'		=> %s,
 				'fields'			=> %s,
 				'included-elements'	=> %s,
+				'namespaces'		=> %s,
 				'source'			=> %s,
 				'section'			=> %s,
 				'unique-field'		=> %s

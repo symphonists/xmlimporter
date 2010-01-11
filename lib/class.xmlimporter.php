@@ -104,6 +104,13 @@
 			$xpath = new DOMXPath($xml);
 			$passed = true;
 			
+			// Register namespaces:
+			if (is_array($options['namespaces'])) {
+				foreach ($options['namespaces'] as $namespace) {
+					$xpath->registerNamespace($namespace['name'], $namespace['uri']);
+				}
+			}
+			
 			// Invalid Markup:
 			if (empty($xml)) {
 				$passed = false;

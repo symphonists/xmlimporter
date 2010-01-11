@@ -235,6 +235,7 @@
 				var_export($new['can-update'], true),
 				var_export($new['fields'], true),
 				var_export($new['included-elements'], true),
+				var_export($new['namespaces'], true),
 				var_export($new['source'], true),
 				var_export($new['section'], true),
 				var_export($new['unique-field'], true)

@@ -375,7 +375,7 @@
 			$fieldset->appendChild($group);
 			$this->Form->appendChild($fieldset);
 			
-		// Source -----------------------------------------------------------
+		// Source -------------------------------------------------------------
 			
 			$fieldset = new XMLElement('fieldset');
 			$fieldset->setAttribute('class', 'settings');
@@ -396,6 +396,78 @@
 			$help->setAttribute('class', 'help');
 			$help->setValue(__('Enter the URL of the XML document you want to process.'));
 			$fieldset->appendChild($help);
+			
+			$label = new XMLElement('h3', __('Namespace Declarations'));
+			$label->setAttribute('class', 'label');
+			$fieldset->appendChild($label);
+			
+		// Namespaces ---------------------------------------------------------
+			
+			$namespaces = new XMLElement('ol');
+			$namespaces->setAttribute('class', 'namespaces-duplicator');
+			
+			if (isset($this->_fields['namespaces']) and is_array($this->_fields['namespaces'])) {
+				foreach ($this->_fields['namespaces'] as $index => $data) {
+					$name = "fields[namespaces][{$index}]";
+					
+					$li = new XMLElement('li');
+					$li->appendChild(new XMLElement('h4', __('Namespace')));
+					
+					$input = Widget::Input("{$name}[field]", $field_id, 'hidden');
+					$li->appendChild($input);
+					
+					$group = new XMLElement('div');
+					$group->setAttribute('class', 'group');
+					
+					$label = Widget::Label(__('Name'));
+					$input = Widget::Input(
+						"{$name}[name]",
+						General::sanitize(@$data['name'])
+					);
+					$label->appendChild($input);
+					$group->appendChild($label);
+					
+					$label = Widget::Label(__('URI'));
+					$input = Widget::Input(
+						"{$name}[uri]",
+						General::sanitize(@$data['uri'])
+					);
+					$label->appendChild($input);
+					$group->appendChild($label);
+					
+					$li->appendChild($group);
+					$namespaces->appendChild($li);
+				}
+			}
+			
+			$name = "fields[namespaces][-1]";
+			
+			$li = new XMLElement('li');
+			$li->appendChild(new XMLElement('h4', __('Namespace')));
+			$li->setAttribute('class', 'template');
+			
+			$input = Widget::Input("{$name}[field]", $field_id, 'hidden');
+			$li->appendChild($input);
+			
+			$group = new XMLElement('div');
+			$group->setAttribute('class', 'group');
+			
+			$label = Widget::Label(__('Name'));
+			$input = Widget::Input("{$name}[name]");
+			$label->appendChild($input);
+			$group->appendChild($label);
+			
+			$label = Widget::Label(__('URI'));
+			$input = Widget::Input("{$name}[uri]");
+			$label->appendChild($input);
+			$group->appendChild($label);
+			
+			$li->appendChild($group);
+			$namespaces->appendChild($li);
+			
+			$fieldset->appendChild($namespaces);
+			
+		// Included Elements --------------------------------------------------
 			
 			$label = Widget::Label(__('Included Elements'));		
 			$label->appendChild(Widget::Input(
@@ -424,7 +496,7 @@
 			if (is_array($sections)) {
 				$fieldset = new XMLElement('fieldset');
 				$fieldset->setAttribute('class', 'settings');
-				$fieldset->appendChild(new XMLElement('legend', __('Section')));
+				$fieldset->appendChild(new XMLElement('legend', __('Destination')));
 				
 				if (is_array($sections)) foreach ($sections as $section) {
 					$options[] = array($section->get('id'), (@$this->_fields['section'] == $section->get('id')), $section->get('name'));
