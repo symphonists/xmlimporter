@@ -843,7 +843,7 @@
 					$col_name->appendChild(Widget::Input("items[{$importer['about']['handle']}]", null, 'checkbox'));
 					
 					$col_date = Widget::TableData(
-						DateTimeObj::get(__SYM_DATETIME_FORMAT__, strtotime($importer['updated']))
+						DateTimeObj::get(__SYM_DATETIME_FORMAT__, strtotime($importer['about']['updated']))
 					);
 					
 					if (!empty($importer['source'])) {
