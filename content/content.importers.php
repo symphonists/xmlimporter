@@ -914,7 +914,7 @@
 			
 			$options = array(
 				array(null, false, 'With Selected...'),
-				array('delete', false, 'Delete'),
+				array('delete', false, 'Delete', 'confirm'),
 				array('run', false, 'Run')
 			);
 
