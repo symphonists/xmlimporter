@@ -504,6 +504,8 @@
 			
 			$fieldset->appendChild($namespaces);
 			
+		// Discover Namespaces ------------------------------------------------
+			
 			$label = Widget::Label();
 			$input = Widget::Input('fields[discover-namespaces]', 'yes', 'checkbox');
 			
@@ -511,10 +513,15 @@
 				$input->setAttribute('checked', 'checked');
 			}
 			
-			$label->setValue(__('%s Automatically discover namespaces on save', array(
+			$label->setValue(__('%s Automatically discover namespaces', array(
 				$input->generate(false)
 			)));
 			$fieldset->appendChild($label);
+			
+			$help = new XMLElement('p');
+			$help->setAttribute('class', 'help');
+			$help->setValue(__('Search the source document for namespaces, any that it finds will be added to the declarations above.'));
+			$fieldset->appendChild($help);
 			
 		// Included Elements --------------------------------------------------
 			
