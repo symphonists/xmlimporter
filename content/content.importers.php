@@ -1,5 +1,6 @@
 <?php
 	
+	require_once(TOOLKIT . '/class.gateway.php');
 	require_once(TOOLKIT . '/class.administrationpage.php');
 	require_once(TOOLKIT . '/class.sectionmanager.php');
 	
@@ -272,6 +273,45 @@
 				return;
 			}
 			
+		// Namespaces ---------------------------------------------------------
+			
+			if (@$_POST['fields']['discover-namespaces'] == 'yes') {
+				$gateway = new Gateway();
+				$gateway->init();
+				$gateway->setopt('URL', $this->_fields['source']);
+				$gateway->setopt('TIMEOUT', 6);
+				$data = $gateway->exec();
+				
+				preg_match_all('/xmlns:([a-z][a-z-0-9\-]*)="([^\"]+)"/i', $data, $matches);
+				
+				if (isset($matches[2][0])) {
+					$namespaces = array();
+					
+					if (!is_array($this->_fields['namespaces'])) {
+						$this->_fields['namespaces'] = array();
+					}
+					
+					foreach ($this->_fields['namespaces'] as $namespace) {
+						$namespaces[] = $namespace['name'];
+						$namespaces[] = $namespace['uri'];
+					}
+					
+					foreach ($matches[2] as $index => $uri) {
+						$name = $matches[1][$index];
+						
+						if (in_array($name, $namespaces) or in_array($uri, $namespaces)) continue;
+						
+						$namespaces[] = $name;
+						$namespaces[] = $uri;
+						
+						$this->_fields['namespaces'][] = array(
+							'name'	=> $name,
+							'uri'	=> $uri
+						);
+					}
+				}
+			}
+			
 		// Save ---------------------------------------------------------------
 			
 			$name = $this->_handle;
@@ -413,9 +453,6 @@
 					$li = new XMLElement('li');
 					$li->appendChild(new XMLElement('h4', __('Namespace')));
 					
-					$input = Widget::Input("{$name}[field]", $field_id, 'hidden');
-					$li->appendChild($input);
-					
 					$group = new XMLElement('div');
 					$group->setAttribute('class', 'group');
 					
@@ -466,6 +503,18 @@
 			$namespaces->appendChild($li);
 			
 			$fieldset->appendChild($namespaces);
+			
+			$label = Widget::Label();
+			$input = Widget::Input('fields[discover-namespaces]', 'yes', 'checkbox');
+			
+			if (!$this->_editing) {
+				$input->setAttribute('checked', 'checked');
+			}
+			
+			$label->setValue(__('%s Automatically discover namespaces on save', array(
+				$input->generate(false)
+			)));
+			$fieldset->appendChild($label);
 			
 		// Included Elements --------------------------------------------------
 			
@@ -917,7 +966,7 @@
 				array('delete', false, 'Delete', 'confirm'),
 				array('run', false, 'Run')
 			);
-
+			
 			$actions->appendChild(Widget::Select('with-selected', $options));
 			$actions->appendChild(Widget::Input('action[apply]', 'Apply', 'submit'));
 			
