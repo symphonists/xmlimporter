@@ -5,7 +5,7 @@
 	require_once(TOOLKIT . '/class.entrymanager.php');
 	require_once(TOOLKIT . '/class.sectionmanager.php');
 	
-	require_once(EXTENSIONS . '/xmlimporter/lib/class.formatting_helpers.php');
+	require_once(EXTENSIONS . '/xmlimporter/lib/class.xmlimporterhelpers.php');
 	
 	class XMLImporter {
 		const __OK__ = 100;

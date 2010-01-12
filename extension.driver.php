@@ -32,15 +32,9 @@
 		public function fetchNavigation() {
 			return array(
 				array(
-					'location'	=> 100,
+					'location'	=> 'Blueprints',
 					'name'		=> 'XML Importers',
 					'link'		=> '/importers/'
-				),
-				array(
-					'location'	=> 100,
-					'name'		=> 'Import',
-					'link'		=> '/import/',
-					'visible'	=> 'no'
 				)
 			);
 		}
