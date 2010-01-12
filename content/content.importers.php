@@ -765,7 +765,6 @@
 				'name'			=> array(__('Name'), true),
 				'url'			=> array(__('URL'), true),
 				'elements'		=> array(__('Included Elements'), true),
-				'description'	=> array(__('Description'), true),
 				'modified'		=> array(__('Modified'), true),
 				'author'		=> array(__('Author'), true)
 			);
@@ -922,16 +921,6 @@
 						$col_elements = Widget::TableData('None', 'inactive');
 					}
 					
-					if (!empty($importer['about']['description'])) {
-						$col_description = Widget::TableData(
-							General::sanitize($importer['about']['description'])
-						);
-					}
-					
-					else {
-						$col_description = Widget::TableData('None', 'inactive');
-					}
-					
 					if (isset($importer['about']['author']['website'])) {
 						$col_author = Widget::TableData(Widget::Anchor(
 							$importer['about']['author']['name'],
@@ -954,7 +943,7 @@
 						$col_author = Widget::TableData('None', 'inactive');
 					}
 					
-					$tableBody[] = Widget::TableRow(array($col_name, $col_url, $col_elements, $col_description, $col_date, $col_author), null);
+					$tableBody[] = Widget::TableRow(array($col_name, $col_url, $col_elements, $col_date, $col_author), null);
 				}
 			}
 			
