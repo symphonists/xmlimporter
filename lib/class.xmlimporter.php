@@ -213,13 +213,12 @@
 					$passed = false;
 				}
 				
-				elseif (__ENTRY_OK__ != $entry->setDataFromPost($values, $error, true)) {
+				else if (__ENTRY_OK__ != $entry->setDataFromPost($values, $error, true)) {
 					$passed = false;
 				}
 				
 				$current['entry'] = $entry;
 				$current['values'] = $values;
-				
 			}
 			
 			if (!$passed) return self::__ERROR_VALIDATING__;
@@ -228,8 +227,6 @@
 		}
 		
 		public function commit() {
-			// Find existing entries:
-			
 			$options = $this->options();
 			$existing = array();
 			
@@ -261,6 +258,7 @@
 			
 			foreach ($this->_entries as $index => $current) {
 				$entry = $current['entry'];
+				$values = $current['values'];
 				
 				// Matches an existing entry
 				if (!empty($existing[$index])) {
@@ -277,7 +275,8 @@
 					}
 				}
 				
-				$entry->commit();
+				// Add data again, without simulation:
+				$entry->setDataFromPost($values, $error, false);
 				
 				$status = $entry->get('importer_status');
 				
