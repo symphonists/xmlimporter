@@ -555,7 +555,13 @@
 				$fieldset->appendChild(new XMLElement('legend', __('Destination')));
 				
 				if (is_array($sections)) foreach ($sections as $section) {
-					$options[] = array($section->get('id'), (@$this->_fields['section'] == $section->get('id')), $section->get('name'));
+					if ($section->fetchFields() === false) continue;
+					
+					$options[] = array(
+						$section->get('id'),
+						(@$this->_fields['section'] == $section->get('id')),
+						$section->get('name')
+					);
 				}
 				
 				$label = Widget::Label(__('Section'));		
@@ -573,8 +579,11 @@
 					$section_fields = new XMLElement('ol');
 					$section_fields->setAttribute('class', 'section-fields');
 					$section_fields->setAttribute('id', 'section-' . $section->get('id'));
+					$fields = $section->fetchFields();
 					
-					foreach ($section->fetchFields() as $index => $field) {
+					if ($fields === false) continue;
+					
+					foreach ($fields as $index => $field) {
 						$field_id = $field->get('id');
 						$field_name = "fields[fields][{$index}]";
 						$field_data = null;
@@ -629,7 +638,7 @@
 						$section_fields->appendChild($li);
 					}
 					
-					foreach ($section->fetchFields() as $index => $field) {
+					foreach ($fields as $index => $field) {
 						$field_id = $field->get('id');
 						$field_name = "fields[fields][-1]";
 						
