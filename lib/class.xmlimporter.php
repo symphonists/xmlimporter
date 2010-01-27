@@ -276,7 +276,7 @@
 				}
 				
 				// Add data again, without simulation:
-				$entry->setDataFromPost($values, $error, false);
+				//$entry->setDataFromPost($values, $error, false);
 				
 				$status = $entry->get('importer_status');
 				
