@@ -1,6 +1,7 @@
 <?php
 	
 	require_once(EXTENSIONS . '/xmlimporter/lib/class.xmlimporter.php');
+	require_once(EXTENSIONS . '/xmlimporter/lib/class.xmlimportermanager.php');
 	
 	class Extension_XmlImporter extends Extension {
 	/*-------------------------------------------------------------------------
