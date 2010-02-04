@@ -41,23 +41,23 @@
 			$matches = $xpath->evaluate($expression, $entry);
 
 			if ($matches instanceof DOMNodeList) {
-				$value = '';
+				$values = array();
 				
 				foreach ($matches as $match) {
 					if ($match instanceof DOMAttr or $match instanceof DOMText) {
-						$value .= $match->nodeValue;
+						$values[] = $match->nodeValue;
 					}
 					
 					else {
-						$value .= $xml->saveXML($match);
+						$values[] = $xml->saveXML($match);
 					}
 				}
 				
-				return $value;
+				return $values;
 			}
 			
 			else if (!is_null($matches)) {
-				return (string)$matches;
+				return array(strval($matches));
 			}
 			
 			return null;
@@ -158,29 +158,31 @@
 					'entry'		=> null
 				);
 				
-				foreach ($options['fields'] as $mapping) {					
-					$value = $this->getExpressionValue($xml, $entry, $xpath, $mapping['xpath'], $debug);
+				foreach ($options['fields'] as $mapping) {
+					$values = $this->getExpressionValue($xml, $entry, $xpath, $mapping['xpath'], $debug);
 					
 					if (isset($mapping['php']) && $mapping['php'] != '') {
 						$php = stripslashes($mapping['php']);
 						
 						// static helper
 						if (preg_match('/::/', $php)) {
-							$value = call_user_func_array($php, array($value));
+							foreach($values as $id => $value) {
+								$values[$id] = call_user_func_array($php, array($value));
+							}
 						}
 						
 						// basic function
 						else {
-							$function = preg_replace('/\$value/', "'" . $value . "'", $php);
-							
-							if (!preg_match('/^return/', $function)) $function = 'return ' . $function;
-							if (!preg_match('/;$/', $function)) $function .= ';';
-							
-							$value = @eval($function);
+							foreach($values as $id => $value) {
+								$function = preg_replace('/\$value/', "'" . $value . "'", $php);			
+								if (!preg_match('/^return/', $function)) $function = 'return ' . $function;
+								if (!preg_match('/;$/', $function)) $function .= ';';
+								$values[$id] = @eval($function);
+							}
 						}
 					}
 					
-					$this->_entries[$index]['values'][$mapping['field']] = $value;					
+					$this->_entries[$index]['values'][$mapping['field']] = $values;					
 				}
 			}
 			
@@ -197,8 +199,22 @@
 				$values = array();
 				
 				// Map values:
-				foreach ($current['values'] as $field_id => $value) {
+				foreach ($current['values'] as $field_id => $value) {					
 					$field = $fieldManager->fetch($field_id);
+					
+					// Handle different field types
+					$type = $field->get('type');
+					if($type == 'taglist') {
+						$value = implode(', ', $value);
+					}
+					elseif($type == 'select' || $type == 'selectbox_link' || $type == 'author') {
+						if($field->get('allow_multiple_selection') == 'no') {
+							$value = array(implode('', $value));
+						}
+					}
+					else {
+						$value = implode('', $value);
+					}
 					
 					// Adjust value?
 					if (method_exists($field, 'prepareImportValue')) {
@@ -277,6 +293,7 @@
 				
 				// Add data again, without simulation:
 				//$entry->setDataFromPost($values, $error, false);
+				$entry->commit();
 				
 				$status = $entry->get('importer_status');
 				
