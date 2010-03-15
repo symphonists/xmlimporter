@@ -181,7 +181,7 @@
 							}
 						}
 					}
-					
+				
 					$this->_entries[$index]['values'][$mapping['field']] = $values;					
 				}
 			}
@@ -212,34 +212,39 @@
 							$value = array(implode('', $value));
 						}
 					}
+					elseif($type == 'datetime') {
+						$value = $value[0];
+					}
 					else {
 						$value = implode('', $value);
 					}
-					
+
 					// Adjust value?
 					if (method_exists($field, 'prepareImportValue')) {
 						$value = $field->prepareImportValue($value);
 					}
 					
 					$values[$field->get('element_name')] = $value;
+									
 				}
-				
+
 				// Validate:
 				if (__ENTRY_FIELD_ERROR__ == $entry->checkPostData($values, $current['errors'])) {
 					$passed = false;
 				}
 				
-				else if (__ENTRY_OK__ != $entry->setDataFromPost($values, $error, true)) {
+				else if (__ENTRY_OK__ != $entry->setDataFromPost($values, $error, true, true)) {
 					$passed = false;
 				}
 				
 				$current['entry'] = $entry;
 				$current['values'] = $values;
 			}
-			
+
 			if (!$passed) return self::__ERROR_VALIDATING__;
 			
 			return self::__OK__;
+			
 		}
 		
 		public function commit() {
@@ -271,7 +276,7 @@
 					}
 				}
 			}
-			
+
 			foreach ($this->_entries as $index => $current) {
 				$entry = $current['entry'];
 				$values = $current['values'];
@@ -290,10 +295,17 @@
 						continue;
 					}
 				}
-				
-				// Add data again, without simulation:
-				//$entry->setDataFromPost($values, $error, false);
-				$entry->commit();
+
+				// Commit imported data:
+				// Don't use $entry->commit() as it will override fields that should not be populated by the importer,
+				// e. g. additional fields that are handled manually
+				$EntryManager = new EntryManager($entry->_engine);
+				if($entry->get('id')) {
+					$EntryManager->edit($entry);					
+				}
+				else {
+					$EntryManager->add($entry);
+				}	
 				
 				$status = $entry->get('importer_status');
 				
