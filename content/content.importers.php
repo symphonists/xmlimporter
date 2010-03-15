@@ -158,6 +158,7 @@
 						));
 						
 						foreach ($current['values'] as $field => $value) {
+							if(is_array($value)) $value = implode(',', $value);
 							$values[$field] = htmlentities($value);
 						}
 						
