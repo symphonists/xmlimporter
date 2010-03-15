@@ -336,8 +336,16 @@
 		}
 		
 		public function __viewEdit() {
-			$this->addStylesheetToHead(URL . '/extensions/xmlimporter/assets/xmlimporter.css', 'screen', 100);
-			$this->addScriptToHead(URL . '/extensions/xmlimporter/assets/xmlimporter.js', 101);
+			$config = Administration::instance()->Configuration;
+			
+			if ($config->get('version', 'symphony') == '2.0.6') {
+				$this->addScriptToHead(URL . '/extensions/xmlimporter/assets/symphony.orderable.js', 101);
+				$this->addStylesheetToHead(URL . '/extensions/xmlimporter/assets/symphony.duplicator.css', 'screen', 101);
+				$this->addScriptToHead(URL . '/extensions/xmlimporter/assets/symphony.duplicator.js', 102);
+			}
+			
+			$this->addStylesheetToHead(URL . '/extensions/xmlimporter/assets/xmlimporter.css', 'screen', 103);
+			$this->addScriptToHead(URL . '/extensions/xmlimporter/assets/xmlimporter.js', 104);
 			
 		// Status: ------------------------------------------------------------
 			
