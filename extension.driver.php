@@ -30,16 +30,16 @@
 			);
 		}
 		
-		public function fetchNavigation() {
+/*		public function fetchNavigation() {
 			return array(
 				array(
-					'location'	=> 'Blueprints',
-					'name'		=> 'XML Importers',
+					'location'	=> __('Blueprints'),
+					'name'		=> __('XML Importers'),
 					'link'		=> '/importers/'
 				)
 			);
 		}
-		
+*/		
 		public function initializeAdmin($context) {
 			$page = $context['parent']->Page;
 			
