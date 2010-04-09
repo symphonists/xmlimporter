@@ -202,26 +202,33 @@
 				foreach ($current['values'] as $field_id => $value) {					
 					$field = $fieldManager->fetch($field_id);
 					
-					// Handle different field types
-					$type = $field->get('type');
-					if($type == 'taglist') {
-						$value = implode(', ', $value);
-					}
-					elseif($type == 'select' || $type == 'selectbox_link' || $type == 'author') {
-						if($field->get('allow_multiple_selection') == 'no') {
-							$value = array(implode('', $value));
-						}
-					}
-					elseif($type == 'datetime') {
-						$value = $value[0];
-					}
-					else {
-						$value = implode('', $value);
-					}
-
 					// Adjust value?
 					if (method_exists($field, 'prepareImportValue')) {
 						$value = $field->prepareImportValue($value);
+					}
+					
+					// Handle different field types
+					// TODO: this should be done by the fields with the above function
+					else {
+						$type = $field->get('type');
+						
+						if ($type == 'taglist') {
+							$value = implode(', ', $value);
+						}
+						
+						else if ($type == 'select' || $type == 'selectbox_link' || $type == 'author') {
+							if ($field->get('allow_multiple_selection') == 'no') {
+								$value = array(implode('', $value));
+							}
+						}
+						
+						else if ($type == 'datetime') {
+							$value = $value[0];
+						}
+						
+						else {
+							$value = implode('', $value);
+						}
 					}
 					
 					$values[$field->get('element_name')] = $value;
@@ -244,15 +251,14 @@
 			if (!$passed) return self::__ERROR_VALIDATING__;
 			
 			return self::__OK__;
-			
 		}
 		
 		public function commit() {
+			$entryManager = new EntryManager($this->_Parent);
 			$options = $this->options();
 			$existing = array();
 			
 			if ((integer)$options['unique-field'] > 0) {
-				$entryManager = new EntryManager($this->_Parent);
 				$fieldManager = new FieldManager($this->_Parent);
 				$field = $fieldManager->fetch($options['unique-field']);
 				
@@ -276,36 +282,36 @@
 					}
 				}
 			}
-
+			
 			foreach ($this->_entries as $index => $current) {
 				$entry = $current['entry'];
 				$values = $current['values'];
 				
 				// Matches an existing entry
 				if (!empty($existing[$index])) {
-					// update
+					// Update
 					if ($options['can-update'] == 'yes') {
 						$entry->set('id', $existing[$index]);
 						$entry->set('importer_status', 'updated');
 					}
 					
-					// skip
+					// Skip
 					else {
 						$entry->set('importer_status', 'skipped');
 						continue;
 					}
 				}
-
+				
 				// Commit imported data:
 				// Don't use $entry->commit() as it will override fields that should not be populated by the importer,
 				// e. g. additional fields that are handled manually
-				$EntryManager = new EntryManager($entry->_engine);
-				if($entry->get('id')) {
-					$EntryManager->edit($entry);					
+				if ($entry->get('id')) {
+					$entryManager->edit($entry);
 				}
+				
 				else {
-					$EntryManager->add($entry);
-				}	
+					$entryManager->add($entry);
+				}
 				
 				$status = $entry->get('importer_status');
 				
