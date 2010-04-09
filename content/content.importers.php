@@ -162,14 +162,9 @@
 							$values[$field] = htmlentities($value);
 						}
 						
-						ob_start();
-						var_dump($values);
-						$values_array = ob_get_contents();
-						ob_end_clean();
-						
 						$fieldset->appendChild(new XMLElement(
 							'pre',
-							"<code>" . $values_array . "</code>"
+							"<code>" . var_export($values, true) . "</code>"
 						));
 					}
 				}

@@ -30,7 +30,7 @@
 			);
 		}
 		
-/*		public function fetchNavigation() {
+		public function fetchNavigation() {
 			return array(
 				array(
 					'location'	=> __('Blueprints'),
@@ -39,7 +39,7 @@
 				)
 			);
 		}
-*/		
+		
 		public function initializeAdmin($context) {
 			$page = $context['parent']->Page;
 			
