@@ -249,6 +249,9 @@
 			$options = $this->options();
 			$existing = array();
 
+			$sectionManager = new SectionManager($this->_Parent);
+			$section = $sectionManager->fetch($options['section']);
+
 			if ((integer)$options['unique-field'] > 0) {
 				$entryManager = new EntryManager($this->_Parent);
 				$fieldManager = new FieldManager($this->_Parent);
@@ -279,8 +282,10 @@
 				$entry = $current['entry'];
 				$values = $current['values'];
 
+				$edit = !empty($existing[$index]);
+
 				// Matches an existing entry
-				if (!empty($existing[$index])) {
+				if ($edit) {
 					// update
 					if ($options['can-update'] == 'yes') {
 						$entry->set('id', $existing[$index]);
@@ -295,12 +300,39 @@
 				}
 
 				// Add data again, without simulation:
-				$entry->setDataFromPost($values, $error, false);
+				$entry->setDataFromPost($values, $error);
+
+				if ($edit) {
+					###
+					# Delegate: XMLImporterEntryPreEdit
+					# Description: Just prior to editing of an Entry.
+					$this->_Parent->ExtensionManager->notifyMembers('XMLImporterEntryPreEdit', '/xmlimporter/importers/run/', array('section' => $section, 'fields' => &$values, 'entry' => &$entry));
+				}
+				else {
+					###
+					# Delegate: XMLImporterEntryPreCreate
+					# Description: Just prior to creation of an Entry. Entry object provided
+					$this->_Parent->ExtensionManager->notifyMembers('XMLImporterEntryPreCreate', '/xmlimporter/importers/run/', array('section' => $section, 'fields' => &$values, 'entry' => &$entry));
+				}
+
 				$entry->commit();
 
 				$status = $entry->get('importer_status');
 
 				if (!$status) $entry->set('importer_status', 'created');
+
+				if ($edit) {
+					###
+					# Delegate: XMLImporterEntryPostEdit
+					# Description: Editing an entry. Entry object is provided.
+					$this->_Parent->ExtensionManager->notifyMembers('XMLImporterEntryPostEdit', '/xmlimporter/importers/run/', array('section' => $section, 'entry' => $entry, 'fields' => $values));
+				}
+				else {
+					###
+					# Delegate: XMLImporterEntryPostCreate
+					# Description: Creation of an Entry. New Entry object is provided.
+					$this->_Parent->ExtensionManager->notifyMembers('XMLImporterEntryPostCreate', '/xmlimporter/importers/run/', array('section' => $section, 'entry' => $entry, 'fields' => $values));
+				}
 			}
 		}
 	}
