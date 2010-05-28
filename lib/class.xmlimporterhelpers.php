@@ -9,6 +9,11 @@
 			$markdown = htmlspecialchars($markdown, ENT_NOQUOTES, 'UTF-8');		
 			return $markdown;
 		}
+		
+		static function dateFlip($string){
+			$value = implode('/', array_reverse(explode('/', strtok($string, ' '))));	
+			return $value;		
+		}
 	}
 	
 ?>
