@@ -63,7 +63,7 @@
 			return null;
 		}
 
-		public function validate($source = null) {
+		public function validate($source = null, $remote = true) {
 			if (!function_exists('handleXMLError')) {
 				function handleXMLError($errno, $errstr, $errfile, $errline, $context) {
 					$context['self']->_errors[] = $errstr;
@@ -79,18 +79,27 @@
 			$self = $this; // Fucking PHP...
 			$options = $this->options();
 
-			if (!is_null($source)) {
-				$options['source'] = $source;
+			if($remote) {
+				if (!is_null($source)) {
+					$options['source'] = $source;
+				}
+
+				// Fetch document:
+				$gateway = new Gateway();
+				$gateway->init();
+				$gateway->setopt('URL', $options['source']);
+				$gateway->setopt('TIMEOUT', 6);
+				$data = $gateway->exec();
+
+				if (empty($data)) {
+					$this->_errors[] = __('No data to import.');
+					$passed = false;
+				}
 			}
-
-			// Fetch document:
-			$gateway = new Gateway();
-			$gateway->init();
-			$gateway->setopt('URL', $options['source']);
-			$gateway->setopt('TIMEOUT', 6);
-			$data = $gateway->exec();
-
-			if (empty($data)) {
+			else if(!is_null($source)) {
+				$data = $source;
+			}
+			else {
 				$this->_errors[] = __('No data to import.');
 				$passed = false;
 			}
@@ -206,7 +215,6 @@
 					if (method_exists($field, 'prepareImportValue')) {
 						$value = $field->prepareImportValue($value);
 					}
-
 					else {
 						// Handle different field types
 						// (this should be done by the fields with the above function)
