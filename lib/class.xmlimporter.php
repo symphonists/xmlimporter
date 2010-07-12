@@ -190,7 +190,7 @@
 							}
 						}
 					}
-					
+
 					$this->_entries[$index]['values'][$mapping['field']] = $values;
 				}
 			}
@@ -210,36 +210,36 @@
 				// Map values:
 				foreach ($current['values'] as $field_id => $value) {
 					$field = $fieldManager->fetch($field_id);
-					
+
 					// Adjust value?
 					if (method_exists($field, 'prepareImportValue')) {
 						$value = $field->prepareImportValue($value);
 					}
-					
+
 					// Handle different field types
 					// TODO: this should be done by the fields with the above function
 					else {
 						$type = $field->get('type');
-						
+
 						if ($type == 'taglist') {
 							$value = implode(', ', $value);
 						}
-						
+
 						else if ($type == 'select' || $type == 'selectbox_link' || $type == 'author') {
 							if ($field->get('allow_multiple_selection') == 'no') {
 								$value = array(implode('', $value));
 							}
 						}
-						
+
 						else if ($type == 'datetime') {
 							$value = $value[0];
 						}
-						
+
 						else {
 							$value = implode('', $value);
 						}
 					}
-					
+
 					$values[$field->get('element_name')] = $value;
 				}
 
@@ -247,7 +247,7 @@
 				if (__ENTRY_FIELD_ERROR__ == $entry->checkPostData($values, $current['errors'])) {
 					$passed = false;
 				}
-				
+
 				else if (__ENTRY_OK__ != $entry->setDataFromPost($values, $error, true, true)) {
 					$passed = false;
 				}
@@ -282,10 +282,10 @@
 					$field->buildDSRetrivalSQL($data, $joins, $where);
 
 					$group = $field->requiresSQLGrouping();
-					$entries = $entryManager->fetch(null, $options['section'], 1, null, $where, $joins, false, true);
+					$entries = $entryManager->fetch(null, $options['section'], 1, null, $where, $joins, false, false);
 
-					if (is_array($entries) && count($entries) > 0) {
-						$existing[$index] = $entries[0]->get('id');
+					if (is_array($entries) && !empty($entries)) {
+						$existing[$index] = $entries[0]['id'];
 					}
 
 					else {
@@ -297,9 +297,9 @@
 			foreach ($this->_entries as $index => $current) {
 				$entry = $current['entry'];
 				$values = $current['values'];
-				
+
 				$edit = !empty($existing[$index]);
-				
+
 				// Matches an existing entry
 				if ($edit) {
 					// Update
@@ -307,14 +307,14 @@
 						$entry->set('id', $existing[$index]);
 						$entry->set('importer_status', 'updated');
 					}
-					
+
 					// Skip
 					else {
 						$entry->set('importer_status', 'skipped');
 						continue;
 					}
 				}
-				
+
 				if ($edit) {
 					###
 					# Delegate: XMLImporterEntryPreEdit
@@ -328,7 +328,7 @@
 						)
 					);
 				}
-				
+
 				else {
 					###
 					# Delegate: XMLImporterEntryPreCreate
@@ -342,19 +342,19 @@
 						)
 					);
 				}
-				
+
 				if ($entry->get('id')) {
 					$entryManager->edit($entry);
 				}
-				
+
 				else {
 					$entryManager->add($entry);
 				}
-				
+
 				$status = $entry->get('importer_status');
-				
+
 				if (!$status) $entry->set('importer_status', 'created');
-				
+
 				if ($edit) {
 					###
 					# Delegate: XMLImporterEntryPostEdit
@@ -368,7 +368,7 @@
 						)
 					);
 				}
-				
+
 				else {
 					###
 					# Delegate: XMLImporterEntryPostCreate
