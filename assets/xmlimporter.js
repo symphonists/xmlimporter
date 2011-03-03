@@ -1,15 +1,10 @@
 jQuery(document).ready(function() {	
-	
 	$ = jQuery;
 	
 	XmlImporter.init();
-	
-	
-	
 });
 
 var XmlImporter = {
-	
 	init: function() {
 		var self = this;
 		
@@ -22,6 +17,7 @@ var XmlImporter = {
 		$('ol.namespaces-duplicator').symphonyDuplicator({
 			orderable:	true
 		});
+		
 		$('ol.section-fields').symphonyDuplicator({
 			orderable:	true
 		});

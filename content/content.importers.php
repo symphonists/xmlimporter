@@ -28,16 +28,18 @@
 			parent::__construct($parent);
 			
 			$this->_uri = URL . '/symphony/extension/xmlimporter';
-			$this->_driver = $this->_Parent->ExtensionManager->create('xmlimporter');
+			$this->_driver = Symphony::ExtensionManager()->create('xmlimporter');
 		}
 		
 		public function build($context) {
-			if (@$context[0] == 'edit' or @$context[0] == 'new') {
-				$this->__prepareEdit($context);
-			}
-			
-			else if (@$context[0] == 'run') {
-				$this->__prepareRun($context);
+			if (isset($context[0])) {
+				if ($context[0] == 'edit' || $context[0] == 'new') {
+					$this->__prepareEdit($context);
+				}
+				
+				else if ($context[0] == 'run') {
+					$this->__prepareRun($context);
+				}
 			}
 			
 			else {
@@ -52,7 +54,8 @@
 	-------------------------------------------------------------------------*/
 		
 		public function __prepareRun($context) {
-			$importManager = new XmlImporterManager($this->_Parent);
+			$importManager = new XmlImporterManager(Symphony::Engine());
+			$html_errors = ini_get('html_errors');
 			$source = null;
 			
 			if (isset($_GET['source'])) {
@@ -60,6 +63,8 @@
 			}
 			
 			array_shift($context);
+			
+			ini_set('html_errors', false);
 			
 			foreach ($context as $handle) {
 				$importer = $importManager->create($handle);
@@ -74,12 +79,24 @@
 					'status'	=> $status
 				);
 			}
+			
+			ini_set('html_errors', $html_errors);
 		}
 		
 		public function __viewRun() {
+			$this->addStylesheetToHead(URL . '/extensions/xmlimporter/assets/xmlimporter.css', 'screen', 103);
+			$this->addScriptToHead(URL . '/extensions/xmlimporter/assets/xmlimporter.js', 104);
+			
 			$this->setPageType('form');
-			$this->setTitle(__('Symphony') . ' &ndash; ' . __('XML Importers') . ' &ndash; ' . __('Run'));
-			$this->appendSubheading("<a href=\"{$this->_uri}/importers/\">" . __('XML Importers') . "</a> &raquo; " . __('Run'));
+			$this->setTitle(__(
+				'%1$s &ndash; %2$s &ndash; %3$s',
+				array(
+					__('Symphony'),
+					__('XML Importers'),
+					__('Run XML Importer')
+				)
+			));
+			$this->appendSubheading(__('Run XML Importer'));
 			
 			foreach ($this->_runs as $run) {
 				$importer = $run['importer'];
@@ -88,7 +105,7 @@
 				$about = $importer->about();
 				
 				$fieldset = new XMLElement('fieldset');
-				$fieldset->setAttribute('class', 'settings');
+				$fieldset->setAttribute('class', 'settings xml-importer-run');
 				$fieldset->appendChild(new XMLElement('legend', $about['name']));
 				
 				// Markup invalid:
@@ -218,7 +235,7 @@
 		}
 		
 		public function __actionEdit() {
-			if (@array_key_exists('delete', $_POST['action'])) {
+			if (isset($_POST['action']) && array_key_exists('delete', $_POST['action'])) {
 				$this->__actionEditDelete();
 			}
 			
@@ -234,19 +251,17 @@
 		}
 		
 		public function __actionEditNormal() {
-			//header('content-type: text/plain');
-			
 		// Validate -----------------------------------------------------------
 			
 			$fields = $_POST['fields'];
 			
 			// Name:
-			if (!isset($fields['about']['name']) or empty($fields['about']['name'])) {
+			if (!isset($fields['about']['name']) || trim($fields['about']['name']) == '') {
 				$this->_errors['name'] = 'Name must not be empty.';
 			}
 			
 			// Source:
-			if (!isset($fields['source']) or empty($fields['source'])) {
+			if (!isset($fields['source']) || trim($fields['source']) == '') {
 				$this->_errors['source'] = 'Source must not be empty.';
 			}
 			
@@ -254,58 +269,119 @@
 				$this->_errors['source'] = 'Source is not a valid URL.';
 			}
 			
-			// TODO: Validate included-elements
+			// Included elements:
+			if (!isset($fields['included-elements']) || trim($fields['included-elements']) == '') {
+				$this->_errors['included-elements'] = 'Included Elements must not be empty.';
+			}
 			
-			$fields['about']['file'] = @$this->_fields['about']['file'];
-			$fields['about']['created'] = @$this->_fields['about']['created'];
-			$fields['about']['updated'] = @$this->_fields['about']['updated'];
-			$fields['can-update'] = (@$fields['can-update'] == 'yes' ? 'yes' : 'no');
-			$fields['unique-field'] = (integer)@$fields['unique-field'];
-			$fields['section'] = (integer)@$fields['section'];
+			else {
+				try {
+					$this->_driver->validateXPath($fields['included-elements']);
+				}
+				
+				catch (Exception $e) {
+					$this->_errors['included-elements'] = $e->getMessage();
+				}
+			}
+			
+			// Fields:
+			if (isset($fields['fields']) && is_array($fields['fields'])) {
+				foreach ($fields['fields'] as $index => $field) {
+					try {
+						$this->_driver->validateXPath($field['xpath']);
+					}
+					
+					catch (Exception $e) {
+						if (!isset($this->_errors['fields'])) {
+							$this->_errors['fields'] = array();
+						}
+						
+						$this->_errors['fields'][$index] = $e->getMessage();
+					}
+				}
+			}
+			
+			$fields['about']['file'] = (
+				isset($this->_fields['about']['file'])
+					? $this->_fields['about']['file']
+					: null
+			);
+			$fields['about']['created'] = (
+				isset($this->_fields['about']['created'])
+					? $this->_fields['about']['created']
+					: null
+			);
+			$fields['about']['updated'] = (
+				isset($this->_fields['about']['updated'])
+					? $this->_fields['about']['updated']
+					: null
+			);
+			$fields['can-update'] = (
+				isset($fields['can-update']) && $fields['can-update'] == 'yes'
+					? 'yes'
+					: 'no'
+			);
+			
 			$this->_fields = $fields;
 			
 			if (!empty($this->_errors)) {
 				$this->_valid = false;
+				
 				return;
 			}
 			
 		// Namespaces ---------------------------------------------------------
 			
-			if (@$_POST['fields']['discover-namespaces'] == 'yes') {
+			if (
+				isset($_POST['fields']['discover-namespaces'])
+				&& $_POST['fields']['discover-namespaces'] == 'yes'
+			) {
 				$gateway = new Gateway();
 				$gateway->init();
 				$gateway->setopt('URL', $this->_fields['source']);
-				$gateway->setopt('TIMEOUT', 6);
+				$gateway->setopt('TIMEOUT', 60);
 				$data = $gateway->exec();
 				
-				preg_match_all('/xmlns:([a-z][a-z-0-9\-]*)="([^\"]+)"/i', $data, $matches);
+				if ($data === false) {
+					$this->_errors['discover-namespaces'] = __('Error loading data from URL, make sure it is valid and that it returns data within 60 seconds.');
+				}
 				
-				if (isset($matches[2][0])) {
-					$namespaces = array();
+				else {
+					preg_match_all('/xmlns:([a-z][a-z-0-9\-]*)="([^\"]+)"/i', $data, $matches);
 					
-					if (!is_array($this->_fields['namespaces'])) {
-						$this->_fields['namespaces'] = array();
-					}
-					
-					foreach ($this->_fields['namespaces'] as $namespace) {
-						$namespaces[] = $namespace['name'];
-						$namespaces[] = $namespace['uri'];
-					}
-					
-					foreach ($matches[2] as $index => $uri) {
-						$name = $matches[1][$index];
+					if (isset($matches[2][0])) {
+						$namespaces = array();
 						
-						if (in_array($name, $namespaces) or in_array($uri, $namespaces)) continue;
+						if (!is_array($this->_fields['namespaces'])) {
+							$this->_fields['namespaces'] = array();
+						}
 						
-						$namespaces[] = $name;
-						$namespaces[] = $uri;
+						foreach ($this->_fields['namespaces'] as $namespace) {
+							$namespaces[] = $namespace['name'];
+							$namespaces[] = $namespace['uri'];
+						}
 						
-						$this->_fields['namespaces'][] = array(
-							'name'	=> $name,
-							'uri'	=> $uri
-						);
+						foreach ($matches[2] as $index => $uri) {
+							$name = $matches[1][$index];
+							
+							if (in_array($name, $namespaces) or in_array($uri, $namespaces)) continue;
+							
+							$namespaces[] = $name;
+							$namespaces[] = $uri;
+							
+							$this->_fields['namespaces'][] = array(
+								'name'	=> $name,
+								'uri'	=> $uri
+							);
+						}
 					}
 				}
+			}
+			
+			if (!empty($this->_errors)) {
+				$this->_valid = false;
+				
+				return;
 			}
 			
 		// Save ---------------------------------------------------------------
@@ -315,6 +391,7 @@
 			if (!$this->_driver->setXMLImporter($name, $error, $this->_fields)) {
 				$this->_valid = false;
 				$this->_errors['other'] = $error;
+				
 				return;
 			}
 			
@@ -332,14 +409,6 @@
 		}
 		
 		public function __viewEdit() {
-			$config = Administration::instance()->Configuration;
-			
-			if ($config->get('version', 'symphony') == '2.0.6') {
-				$this->addScriptToHead(URL . '/extensions/xmlimporter/assets/symphony.orderable.js', 101);
-				$this->addStylesheetToHead(URL . '/extensions/xmlimporter/assets/symphony.duplicator.css', 'screen', 101);
-				$this->addScriptToHead(URL . '/extensions/xmlimporter/assets/symphony.duplicator.js', 102);
-			}
-			
 			$this->addStylesheetToHead(URL . '/extensions/xmlimporter/assets/xmlimporter.css', 'screen', 103);
 			$this->addScriptToHead(URL . '/extensions/xmlimporter/assets/xmlimporter.js', 104);
 			
@@ -380,13 +449,41 @@
 			
 		// Header: ------------------------------------------------------------
 			
+			$title = (
+				isset($this->_fields['about']['name']) && $this->_fields['about']['name']
+					? $this->_fields['about']['name']
+					: null
+			);
+			$header = __(
+				$title
+					? $title
+					: __('Untitled')
+			);
+			$button = null;
+			
+			if ($this->_editing) {
+				$button = Widget::Anchor(
+					__('Run XML Importer'),
+					$this->_uri . '/importers/run/' . $this->_context[1] . '/',
+					__('Run XML Importer'),
+					'button'
+				);
+			}
+			
 			$this->setPageType('form');
-			$this->setTitle(__('Symphony') . ' &ndash; ' . __('XML Importers') . ' &ndash; ' . (
-				@$this->_fields['about']['name'] ? $this->_fields['about']['name'] : __('Untitled')
+			$this->setTitle(__(
+				(
+					$title
+						? '%1$s &ndash; %2$s &ndash; %3$s'
+						: '%1$s &ndash; %2$s'
+				),
+				array(
+					__('Symphony'),
+					__('XML Importers'),
+					$title
+				)
 			));
-			$this->appendSubheading("<a href=\"{$this->_uri}/importers/\">" . __('XML Importers') . "</a> &raquo; " . (
-				@$this->_fields['about']['name'] ? $this->_fields['about']['name'] : __('Untitled')
-			));
+			$this->appendSubheading($header, $button);
 			
 		// About --------------------------------------------------------------
 			
@@ -400,7 +497,11 @@
 			$label = Widget::Label(__('Name'));
 			$label->appendChild(Widget::Input(
 				'fields[about][name]',
-				General::sanitize(@$this->_fields['about']['name'])
+				General::sanitize(
+					isset($this->_fields['about']['name'])
+						? $this->_fields['about']['name']
+						: null
+				)
 			));
 			
 			if (isset($this->_errors['name'])) {
@@ -412,7 +513,11 @@
 			$label = Widget::Label(__('Description <i>Optional</i>'));
 			$label->appendChild(Widget::Input(
 				'fields[about][description]',
-				General::sanitize(@$this->_fields['about']['description'])
+				General::sanitize(
+					isset($this->_fields['about']['description'])
+						? $this->_fields['about']['description']
+						: null
+				)
 			));
 			
 			$group->appendChild($label);
@@ -427,7 +532,11 @@
 			
 			$label = Widget::Label(__('URL'));		
 			$label->appendChild(Widget::Input(
-				'fields[source]', General::sanitize(@$this->_fields['source'])
+				'fields[source]', General::sanitize(
+					isset($this->_fields['source'])
+						? $this->_fields['source']
+						: null
+				)
 			));
 			
 			if (isset($this->_errors['source'])) {
@@ -441,7 +550,7 @@
 			$help->setValue(__('Enter the URL of the XML document you want to process.'));
 			$fieldset->appendChild($help);
 			
-			$label = new XMLElement('h3', __('Namespace Declarations'));
+			$label = new XMLElement('p', __('Namespace Declarations'));
 			$label->setAttribute('class', 'label');
 			$fieldset->appendChild($label);
 			
@@ -463,7 +572,11 @@
 					$label = Widget::Label(__('Name'));
 					$input = Widget::Input(
 						"{$name}[name]",
-						General::sanitize(@$data['name'])
+						General::sanitize(
+							isset($data['name'])
+								? $data['name']
+								: null
+						)
 					);
 					$label->appendChild($input);
 					$group->appendChild($label);
@@ -471,7 +584,11 @@
 					$label = Widget::Label(__('URI'));
 					$input = Widget::Input(
 						"{$name}[uri]",
-						General::sanitize(@$data['uri'])
+						General::sanitize(
+							isset($data['uri'])
+								? $data['uri']
+								: null
+						)
 					);
 					$label->appendChild($input);
 					$group->appendChild($label);
@@ -520,6 +637,11 @@
 			$label->setValue(__('%s Automatically discover namespaces', array(
 				$input->generate(false)
 			)));
+			
+			if (isset($this->_errors['discover-namespaces'])) {
+				$label = Widget::wrapFormElementWithError($label, $this->_errors['discover-namespaces']);
+			}
+			
 			$fieldset->appendChild($label);
 			
 			$help = new XMLElement('p');
@@ -531,7 +653,11 @@
 			
 			$label = Widget::Label(__('Included Elements'));		
 			$label->appendChild(Widget::Input(
-				'fields[included-elements]', General::sanitize(@$this->_fields['included-elements'])
+				'fields[included-elements]', General::sanitize(
+					isset($this->_fields['included-elements'])
+						? $this->_fields['included-elements']
+						: null
+				)
 			));
 			
 			if (isset($this->_errors['included-elements'])) {
@@ -549,8 +675,8 @@
 			
 		// Section ------------------------------------------------------------
 			
-			$sectionManager = new SectionManager($this->_Parent);
-			$sections = $sectionManager->fetch(NULL, 'ASC', 'name');
+			$sectionManager = new SectionManager(Symphony::Engine());
+			$sections = $sectionManager->fetch(null, 'ASC', 'name');
 			$options = array();
 			
 			if (is_array($sections)) {
@@ -561,9 +687,13 @@
 				if (is_array($sections)) foreach ($sections as $section) {
 					if ($section->fetchFields() === false) continue;
 					
+					$selected = (
+						isset($this->_fields['section'])
+						&& $this->_fields['section'] == $section->get('id')
+					);
 					$options[] = array(
 						$section->get('id'),
-						(@$this->_fields['section'] == $section->get('id')),
+						$selected,
 						$section->get('name')
 					);
 				}
@@ -575,7 +705,7 @@
 				
 				$fieldset->appendChild($label);
 				
-				$label = new XMLElement('h3', __('Fields'));
+				$label = new XMLElement('p', __('Fields'));
 				$label->setAttribute('class', 'label');
 				$fieldset->appendChild($label);
 				
@@ -614,15 +744,28 @@
 						$label = Widget::Label('XPath Expression');
 						$input = Widget::Input(
 							"{$field_name}[xpath]",
-							General::sanitize(@$field_data['xpath'])
+							General::sanitize(
+								isset($field_data['xpath'])
+									? $field_data['xpath']
+									: null
+							)
 						);
 						$label->appendChild($input);
+						
+						if (isset($this->_errors['fields'][$index])) {
+							$label = Widget::wrapFormElementWithError($label, $this->_errors['fields'][$index]);
+						}
+						
 						$group->appendChild($label);
 						
 						$label = Widget::Label('PHP Function <i>Optional</i>');
 						$input = Widget::Input(
 							"{$field_name}[php]",
-							General::sanitize(@$field_data['php'])
+							General::sanitize(
+								isset($field_data['php'])
+									? $field_data['php']
+									: null
+							)
 						);
 						$label->appendChild($input);
 						$group->appendChild($label);
@@ -633,7 +776,7 @@
 						$label->setAttribute('class', 'meta');
 						$input = Widget::Input("fields[unique-field]", $field_id, 'radio');
 						
-						if (@$this->_fields['unique-field'] == $field_id) {
+						if (isset($this->_fields['unique-field']) && $this->_fields['unique-field'] == $field_id) {
 							$input->setAttribute('checked', 'checked');
 						}
 						
@@ -684,7 +827,7 @@
 				$label->setAttribute('class', 'meta');
 				$input = Widget::Input("fields[unique-field]", $field_id, 'radio');
 				
-				if ((integer)@$this->_fields['unique-field'] == 0) {
+				if (isset($this->_fields['unique-field']) && !$this->_fields['unique-field']) {
 					$input->setAttribute('checked', 'checked');
 				}
 				
@@ -703,7 +846,7 @@
 				$label = Widget::Label();
 				$input = Widget::Input('fields[can-update]', 'yes', 'checkbox');
 				
-				if (@$this->_fields['can-update'] == 'yes') {
+				if (isset($this->_fields['can-update']) && $this->_fields['can-update'] == 'yes') {
 					$input->setAttribute('checked', 'checked');
 				}
 				
@@ -735,7 +878,7 @@
 				$button = new XMLElement('button', __('Delete'));
 				$button->setAttributeArray(array(
 					'name'		=> 'action[delete]',
-					'class'		=> 'confirm delete',
+					'class'		=> 'button confirm delete',
 					'title'		=> __('Delete this XML Importer')
 				));
 				$div->appendChild($button);
@@ -756,7 +899,7 @@
 			), $values);
 			
 			$count = 0;
-			$link = $this->_Parent->getCurrentPageURL();
+			$link = Symphony::Engine()->getCurrentPageURL();
 			
 			foreach ($values as $key => $value) {
 				if ($count++ == 0) {
@@ -782,17 +925,21 @@
 				'author'		=> array(__('Author'), true)
 			);
 			
-			if (@$_GET['sort'] and $this->_table_columns[$_GET['sort']][1]) {
+			if (isset($_GET['sort']) && $_GET['sort'] && $this->_table_columns[$_GET['sort']][1]) {
 				$this->_table_column = $_GET['sort'];
 			}
 			
-			if (@$_GET['order'] == 'desc') {
+			if (isset($_GET['order']) && $_GET['order'] == 'desc') {
 				$this->_table_direction = 'desc';
 			}
 			
 			$this->_pagination = (object)array(
-				'page'		=> (@(integer)$_GET['pg'] > 1 ? (integer)$_GET['pg'] : 1),
-				'length'	=> $this->_Parent->Configuration->get('pagination_maximum_rows', 'symphony')
+				'page'		=> (
+					isset($_GET['pg']) && $_GET['pg'] > 1
+						? $_GET['pg']
+						: 1
+				),
+				'length'	=> Symphony::Engine()->Configuration->get('pagination_maximum_rows', 'symphony')
 			);
 			
 			$this->_importers = $this->_driver->getXMLImporters(
@@ -816,7 +963,11 @@
 		}
 		
 		public function __actionIndex() {
-			$checked = @array_keys($_POST['items']);
+			$checked = (
+				(isset($_POST['items']) && is_array($_POST['items']))
+					? array_keys($_POST['items'])
+					: null
+			);
 			
 			if (is_array($checked) and !empty($checked)) {
 				switch ($_POST['with-selected']) {
@@ -880,7 +1031,10 @@
 						'order'	=> $direction
 					));
 					
-					$anchor = Widget::Anchor($values[0], $link, __("Sort by {$label} " . strtolower($values[0])));
+					$anchor = Widget::Anchor(
+						$values[0], $link,
+						__("Sort by {$label} " . strtolower($values[0]))
+					);
 					
 					if ($column == $this->_table_column) {
 						$anchor->setAttribute('class', 'active');
@@ -896,74 +1050,84 @@
 			
 			if (!is_array($this->_importers) or empty($this->_importers)) {
 				$tableBody = array(
-					Widget::TableRow(array(Widget::TableData(__('None Found.'), 'inactive', null, count($tableHead))))
+					Widget::TableRow(array(
+						Widget::TableData(
+							__('None Found.'), 'inactive', null, count($tableHead)
+						)
+					))
 				);
 			}
 			
-			else {
-				foreach ($this->_importers as $importer) {
-					$col_name = Widget::TableData(
-						Widget::Anchor(
-							$importer['about']['name'],
-							"{$this->_uri}/importers/edit/{$importer['about']['handle']}/"
-						)
+			else foreach ($this->_importers as $importer) {
+				$col_name = Widget::TableData(Widget::Anchor(
+					$importer['about']['name'],
+					"{$this->_uri}/importers/edit/{$importer['about']['handle']}/"
+				));
+				$col_name->appendChild(Widget::Input(
+					"items[{$importer['about']['handle']}]",
+					null, 'checkbox'
+				));
+				
+				$col_date = Widget::TableData(DateTimeObj::get(
+					__SYM_DATETIME_FORMAT__, strtotime($importer['about']['updated'])
+				));
+				
+				if (!empty($importer['source'])) {
+					$col_url = Widget::TableData(
+						General::sanitize($importer['source'])
 					);
-					$col_name->appendChild(Widget::Input("items[{$importer['about']['handle']}]", null, 'checkbox'));
-					
-					$col_date = Widget::TableData(
-						DateTimeObj::get(__SYM_DATETIME_FORMAT__, strtotime($importer['about']['updated']))
-					);
-					
-					if (!empty($importer['source'])) {
-						$col_url = Widget::TableData(
-							General::sanitize($importer['source'])
-						);
-					}
-					
-					else {
-						$col_url = Widget::TableData('None', 'inactive');
-					}
-					
-					if (!empty($importer['included-elements'])) {
-						$col_elements = Widget::TableData(
-							General::sanitize($importer['included-elements'])
-						);
-					}
-					
-					else {
-						$col_elements = Widget::TableData('None', 'inactive');
-					}
-					
-					if (isset($importer['about']['author']['website'])) {
-						$col_author = Widget::TableData(Widget::Anchor(
-							$importer['about']['author']['name'],
-							General::validateURL($importer['about']['author']['website'])
-						));
-					}
-					
-					else if (isset($importer['about']['email'])) {
-						$col_author = Widget::TableData(Widget::Anchor(
-							$importer['about']['author']['name'],
-							'mailto:' . $importer['about']['author']['email']
-						));	
-					}
-					
-					else if (isset($importer['about']['author']['name'])) {
-						$col_author = Widget::TableData($importer['about']['author']['name']);
-					}
-					
-					else {
-						$col_author = Widget::TableData('None', 'inactive');
-					}
-					
-					$tableBody[] = Widget::TableRow(array($col_name, $col_url, $col_elements, $col_date, $col_author), null);
 				}
+				
+				else {
+					$col_url = Widget::TableData('None', 'inactive');
+				}
+				
+				if (!empty($importer['included-elements'])) {
+					$col_elements = Widget::TableData(
+						General::sanitize($importer['included-elements'])
+					);
+				}
+				
+				else {
+					$col_elements = Widget::TableData('None', 'inactive');
+				}
+				
+				if (isset($importer['about']['author']['website'])) {
+					$col_author = Widget::TableData(Widget::Anchor(
+						$importer['about']['author']['name'],
+						General::validateURL($importer['about']['author']['website'])
+					));
+				}
+				
+				else if (isset($importer['about']['email'])) {
+					$col_author = Widget::TableData(Widget::Anchor(
+						$importer['about']['author']['name'],
+						'mailto:' . $importer['about']['author']['email']
+					));	
+				}
+				
+				else if (isset($importer['about']['author']['name'])) {
+					$col_author = Widget::TableData($importer['about']['author']['name']);
+				}
+				
+				else {
+					$col_author = Widget::TableData('None', 'inactive');
+				}
+				
+				$tableBody[] = Widget::TableRow(
+					array(
+						$col_name, $col_url, $col_elements,
+						$col_date, $col_author
+					),
+					null
+				);
 			}
 			
 			$table = Widget::Table(
 				Widget::TableHead($tableHead), null, 
 				Widget::TableBody($tableBody)
 			);
+			$table->setAttribute('class', 'selectable');
 			
 			$this->Form->appendChild($table);
 			

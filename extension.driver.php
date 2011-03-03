@@ -11,10 +11,18 @@
 		public function about() {
 			return array(
 				'name'			=> 'XML Importer',
-				'version'		=> '0.11',
-				'release-date'	=> '2010-05-18',
+				'version'		=> '1.0.0',
+				'release-date'	=> '2011-03-03',
 				'author'		=> array(
-					'name'			=> 'Nick Dunn, Rowan Lewis'
+					array(
+						'name'		=> 'Nick Dunn',
+						'website'	=> 'http://nick-dunn.co.uk'
+					),
+					array(
+						'name'		=> 'Rowan Lewis',
+						'website'	=> 'http://rowanlewis.com',
+						'email'		=> 'me@rowanlewis.com'
+					)
 				),
 				'description' => 'Import data from XML documents directly into Symphony.'
 			);
@@ -49,7 +57,7 @@
 	-------------------------------------------------------------------------*/
 
 		public function countXMLImporters() {
-			$xim = new XMLImporterManager($this->_Parent);
+			$xim = new XMLImporterManager();
 			$results = 0;
 
 			foreach ($xim->listAll() as $about) {
@@ -64,7 +72,7 @@
 		}
 
 		public function getXMLImporters($column = 'name', $direction = 'asc', $page = 1, $length = 100000) {
-			$xim = new XMLImporterManager($this->_Parent);
+			$xim = new XMLImporterManager();
 			$results = array();
 
 			foreach ($xim->listAll() as $about) {
@@ -137,7 +145,7 @@
 		}
 
 		public function getXMLImporter($name) {
-			$xim = new XMLImporterManager($this->_Parent);
+			$xim = new XMLImporterManager();
 			$importer = $xim->create($name);
 
 			$data = $importer->options();
@@ -153,9 +161,9 @@
 			// Update author:
 			if (!isset($new['about']['author'])) {
 				$new['about']['author'] = array(
-					'name'		=> $this->_Parent->Author->getFullName(),
+					'name'		=> Symphony::Engine()->Author->getFullName(),
 					'website'	=> URL,
-					'email'		=> $this->_Parent->Author->get('email')
+					'email'		=> Symphony::Engine()->Author->get('email')
 				);
 			}
 
@@ -175,12 +183,12 @@
 				$rootdir = WORKSPACE;
 			}
 
-			$filemode = $this->_Parent->Configuration->get('write_mode', 'file');
+			$filemode = Symphony::Configuration()->get('write_mode', 'file');
 			$filename = sprintf(
 				'%s/xml-importers/xml-importer.%s.php',
 				$rootdir, $name
 			);
-			$dirmode = $this->_Parent->Configuration->get('write_mode', 'directory');
+			$dirmode = Symphony::Configuration()->get('write_mode', 'directory');
 			$dirname = dirname($filename);
 
 			// Make sure the directory exists:
@@ -247,9 +255,30 @@
 
 			return true;
 		}
+		
+		public function validateXPath($expression) {
+			$document = new DOMDocument();
+			$document->loadXML('<data />');
+			$xpath = new DOMXPath($document);
+			$html_errors = ini_get('html_errors');
+			$exception = null;
+			
+			try {
+				ini_set('html_errors', false);
+				$xpath->evaluate($expression);
+			}
+			
+			catch (Exception $exception) { }
+			
+			ini_set('html_errors', $html_errors);
+			
+			if ($exception) throw $exception;
+			
+			return true;
+		}
 
 		public function truncateValue($value) {
-			$max_length = $this->_Parent->Configuration->get('cell_truncation_length', 'symphony');
+			$max_length = Symphony::Configuration()->get('cell_truncation_length', 'symphony');
 			$max_length = ($max_length ? $max_length : 75);
 
 			$value = General::sanitize($value);

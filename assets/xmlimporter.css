@@ -1,0 +1,7 @@
+.xml-importer-run ol,
+.xml-importer-run p {
+	margin-top: 1em;
+}
+.xml-importer-run ol li {
+	list-style: decimal;
+}

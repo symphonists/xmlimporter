@@ -1,13 +1,18 @@
 # XML Importer
-Version: 0.1.0   
-Author: [Rowan Lewis](http://rowanlewis.com/), [Nick Dunn](http://nick-dunn.co.uk/)  
-Build Date: 2010-01-11  
-Requirements: Symphony 2.0.7
+
+__Version:__ 1.0.0  
+__Author:__ [Rowan Lewis](http://rowanlewis.com/) Rowan Lewis <me@rowanlewis.com>, [Nick Dunn](http://nick-dunn.co.uk/)  
+__Build Date:__ 3 March 2011  
+__Requirements:__ Symphony 2.2  
+
 
 ## Description
+
 XML Importer is a way of creating repeatable templates to import data from XML feeds directly into Symphony sections. It provides a way of mapping content from XML nodes directly onto fields in your sections, and the ability to both create new and update existing entries.
 
+
 ## Installation
+
 1. Upload the 'xmlimporter' folder in this archive to your Symphony 'extensions' folder
 2. Enable it by selecting "XML Importer" on the System > Extensions page, choose Enable from the with-selected menu, then click Apply
 3. Use the extension from the Blueprints > XML Importers menu
@@ -19,10 +24,14 @@ An Importer is similar to a Dynamic XML Datasource in its configuration. Let's c
 * Date (Date)
 * Tweet (Textarea)
 
+
 ### Essentials
+
 Start by creating a new Importer and give it a sensible **Name** such as `Tweets` and add any notes into the **Description** field: `Import Tweets from user's public RSS timeline`.
 
+
 ### Source
+
 This is where we define the XML feed. Start by providing the feed URL, for example mine is:
 
 	http://www.twitter.com/statuses/user_timeline/12675.rss
@@ -40,7 +49,9 @@ This can also be written as:
 
 	//item
 
+
 ### Destination
+
 Now we configure the values for each field in our new entry. Start by selecting the section into which we want to create new entries (`Tweets`). The dropdown under **Fields** will now be filled with the name of each field in this section. We are going to store values for each of the Permalink, Date and Tweet fields.
 
 Click **Add item** to configure the `Permalink` field. You will see three options appear: **XPath Expression**, **PHP Function** and **Is unique**.
@@ -68,7 +79,9 @@ Finally, untick the **Can update existing entries** checkbox. When used in conju
 
 Save your importer.
 
+
 ## Run an Importer
+
 From the XML Importers list, click a row to highlight the importer and select **Run** from the **With Selected...** dropdown.
 
 If you want to use the same Importer in multiple feeds (if you have more than one Twitter feed, for example) you can modify the URL of the Run URL. By default our Twitter importer will be executed this this URL:
@@ -79,7 +92,9 @@ But the feed URL can be overridden by appending a `source` parameter:
 
 	http://symphony-207-contributions/symphony/extension/xmlimporter/importers/run/twitter/?source=http://twitter.com/statuses/public_timeline.rss
 
+
 ## Using PHP Functions
+
 The **PHP Function** field on each imported field allows for some additional processing of the value returned from the XPath Expression. This might be used for parsing out an image URL, converting to Markdown, formatting a date, and so on.
 
 For example, if you wanted to store a hash of the Permalink instead of the URL, you can use the following:

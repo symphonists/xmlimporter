@@ -5,29 +5,26 @@
 		protected $_sort_direction = '';
 		protected $paths = array();
 		
-		public function __construct($parent) {
-			parent::__construct($parent);
-			
+		public function __construct() {
 			$this->paths = array(
 				WORKSPACE . '/xml-importers',
 				EXTENSIONS . '/xmlimporter/xml-importers'
 			);
 			
-			$extensionManager = new ExtensionManager($parent);
-			$extensions = $extensionManager->listInstalledHandles();
+			$extensions = Symphony::ExtensionManager()->listInstalledHandles();
 			
 			if (is_array($extensions) and !empty($extensions)) {
 				foreach ($extensions as $handle) {
 					$path = EXTENSIONS . "/$e/xml-importers";
 					
-					if (@is_dir($path)) $this->paths[] = $path;
+					if (is_dir($path)) $this->paths[] = $path;
 				}
 			}
 		}
 		
 		public function __find($name) {
 			foreach ($this->paths as $path) {
-				if (@is_file("{$path}/xml-importer.{$name}.php")) return $path;
+				if (is_file("{$path}/xml-importer.{$name}.php")) return $path;
 			}
 			
 			return false;
@@ -65,7 +62,7 @@
 			
 			if (!class_exists($classname)) require_once($path);
 			
-			$this->_pool[] =& new $classname($this->_Parent);
+			$this->_pool[] = new $classname(Symphony::Engine());
 
 			return end($this->_pool);
         }
@@ -86,9 +83,7 @@
 						if ($about = $this->about($file)) {
 							$classname = $this->__getClassName($file);
 							$path .= "/xml-importer.{$name}.php";
-							
 							$about['handle'] = $file;
-							$about['for-each'] = @call_user_func(array(&$classname, 'getRootExpression'));
 							
 							$result[] = $about;
 						}
