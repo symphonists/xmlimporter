@@ -187,7 +187,7 @@
 							}
 						}
 					}
-					
+
 					$this->_entries[$index]['values'][$mapping['field']] = $values;
 				}
 			}
