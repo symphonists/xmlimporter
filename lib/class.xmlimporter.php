@@ -210,7 +210,7 @@
 
 					// Adjust value?
 					if (method_exists($field, 'prepareImportValue')) {
-						$value = $field->prepareImportValue($value);
+						$value = $field->prepareImportValue($value, $entry->get('id'));
 					}
 
 					// Handle different field types
