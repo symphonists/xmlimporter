@@ -256,12 +256,19 @@
 			return true;
 		}
 		
-		public function validateXPath($expression) {
+		public function validateXPath($expression, $namespaces = array()) {
 			$document = new DOMDocument();
 			$document->loadXML('<data />');
 			$xpath = new DOMXPath($document);
 			$html_errors = ini_get('html_errors');
 			$exception = null;
+			
+			// Register namespaces:
+			if (is_array($namespaces)) {
+				foreach ($namespaces as $namespace) {
+					$xpath->registerNamespace($namespace['name'], $namespace['uri']);
+				}
+			}
 			
 			try {
 				ini_set('html_errors', false);
