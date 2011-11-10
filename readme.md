@@ -1,9 +1,9 @@
 # XML Importer
 
-__Version:__ 1.1.0
-__Author:__ [Rowan Lewis](http://rowanlewis.com/), [Nick Dunn](http://nick-dunn.co.uk/), [Brendan Abbott](brendan@bloodbone.ws]
-__Build Date:__ unreleased
-__Requirements:__ Symphony 2.2
+- Version: 1.1.0
+- Author: [Rowan Lewis](http://rowanlewis.com/), [Nick Dunn](http://nick-dunn.co.uk/), [Brendan Abbott](brendan@bloodbone.ws)
+- Release Date: unreleased
+- Requirements: Symphony 2.2
 
 
 ## Description
