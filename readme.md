@@ -1,8 +1,8 @@
 # XML Importer
 
-__Version:__ 1.0.0
-__Author:__ [Rowan Lewis](http://rowanlewis.com/) Rowan Lewis <me@rowanlewis.com>, [Nick Dunn](http://nick-dunn.co.uk/)
-__Build Date:__ 3 March 2011
+__Version:__ 1.1.0
+__Author:__ [Rowan Lewis](http://rowanlewis.com/), [Nick Dunn](http://nick-dunn.co.uk/), [Brendan Abbott](brendan@bloodbone.ws]
+__Build Date:__ unreleased
 __Requirements:__ Symphony 2.2
 
 
@@ -13,7 +13,7 @@ XML Importer is a way of creating repeatable templates to import data from XML f
 
 ## Installation
 
-1. Upload the 'xmlimporter' folder in this archive to your Symphony 'extensions' folder
+1. Upload the `xmlimporter` folder in this archive to your Symphony 'extensions' folder
 2. Enable it by selecting "XML Importer" on the System > Extensions page, choose Enable from the with-selected menu, then click Apply
 3. Use the extension from the Blueprints > XML Importers menu
 
@@ -108,3 +108,7 @@ Functions more complex than one line are also possible, by adding them to the in
 	XMLImporterHelpers::markdownify
 
 Notice that you do not need to pass `$value` as this will be done for you. To add your own custom functions, add them to `/extensions/xmlimporter/lib/class.xmlimporterhelpers.php`. The method will be provided with a single argument, and should return a string.
+
+## Your fields and the XML Importer
+
+The XMLImporter allows fields to implement a `prepareImportValue()` function which will preprocess the value from XML before being passed to `processRawFieldData()`. The XML Importer will check for the Field class for the `prepareImportValue()` otherwise it will fall back to rudimentary processing. The `prepareImportValue` function will be passed the value of the XPath and the `entry_id`, and should return a value that your Field's `processRawFieldData` function can accept.

@@ -11,8 +11,8 @@
 		public function about() {
 			return array(
 				'name'			=> 'XML Importer',
-				'version'		=> '1.0.0',
-				'release-date'	=> '2011-03-03',
+				'version'		=> '1.1.0',
+				'release-date'	=> 'unreleased',
 				'author'		=> array(
 					array(
 						'name'		=> 'Nick Dunn',
@@ -22,6 +22,10 @@
 						'name'		=> 'Rowan Lewis',
 						'website'	=> 'http://rowanlewis.com',
 						'email'		=> 'me@rowanlewis.com'
+					),
+					array(
+						'name'		=> 'Brendan Abbott',
+						'website'	=> 'brendan@bloodbone.ws'
 					)
 				),
 				'description' => 'Import data from XML documents directly into Symphony.'
