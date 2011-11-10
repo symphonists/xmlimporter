@@ -27,7 +27,7 @@
 		public function __construct(&$parent){
 			parent::__construct($parent);
 
-			$this->_uri = URL . '/symphony/extension/xmlimporter';
+			$this->_uri = SYMPHONY_URL . '/extension/xmlimporter';
 			$this->_driver = Symphony::ExtensionManager()->create('xmlimporter');
 		}
 
@@ -433,8 +433,8 @@
 						$action, array(
 							__('XML Importer'),
 							DateTimeObj::get(__SYM_TIME_FORMAT__),
-							URL . '/symphony/extension/xmlimporter/importers/new/',
-							URL . '/symphony/extension/xmlimporter/importers/',
+							SYMPHONY_URL . '/extension/xmlimporter/importers/new/',
+							SYMPHONY_URL . '/extension/xmlimporter/importers/',
 							__('XML Importers')
 						)
 					),
@@ -712,6 +712,44 @@
 
 					if ($fields === false) continue;
 
+					// Templates
+					foreach ($fields as $index => $field) {
+						$field_id = $field->get('id');
+						$field_name = "fields[fields][-1]";
+
+						$li = new XMLElement('li');
+						$li->setAttribute('class', 'unique template');
+						$li->setAttribute('data-type', $field->get('element_name'));
+						$li->appendChild(new XMLElement('h4', $field->get('label')));
+
+						$input = Widget::Input("{$field_name}[field]", $field_id, 'hidden');
+						$li->appendChild($input);
+
+						$group = new XMLElement('div');
+						$group->setAttribute('class', 'group');
+
+						$label = Widget::Label('XPath Expression');
+						$input = Widget::Input("{$field_name}[xpath]");
+						$label->appendChild($input);
+						$group->appendChild($label);
+
+						$label = Widget::Label('PHP Function <i>Optional</i>');
+						$input = Widget::Input("{$field_name}[php]");
+						$label->appendChild($input);
+						$group->appendChild($label);
+
+						$li->appendChild($group);
+
+						$label = Widget::Label();
+						$label->setAttribute('class', 'meta');
+						$input = Widget::Input("fields[unique-field]", $field_id, 'radio');
+
+						$label->setValue($input->generate(false) . ' Is unique');
+						$li->appendChild($label);
+						$section_fields->appendChild($li);
+					}
+
+					// Actual instances
 					foreach ($fields as $index => $field) {
 						$field_id = $field->get('id');
 						$field_name = "fields[fields][{$index}]";
@@ -728,6 +766,8 @@
 						if (is_null($field_data)) continue;
 
 						$li = new XMLElement('li');
+						$li->setAttribute('class', 'unique');
+						$li->setAttribute('data-type', $field->get('element_name'));
 						$li->appendChild(new XMLElement('h4', $field->get('label')));
 
 						$input = Widget::Input("{$field_name}[field]", $field_id, 'hidden');
@@ -774,41 +814,6 @@
 						if (isset($this->_fields['unique-field']) && $this->_fields['unique-field'] == $field_id) {
 							$input->setAttribute('checked', 'checked');
 						}
-
-						$label->setValue($input->generate(false) . ' Is unique');
-						$li->appendChild($label);
-						$section_fields->appendChild($li);
-					}
-
-					foreach ($fields as $index => $field) {
-						$field_id = $field->get('id');
-						$field_name = "fields[fields][-1]";
-
-						$li = new XMLElement('li');
-						$li->appendChild(new XMLElement('h4', $field->get('label')));
-						$li->setAttribute('class', 'template');
-
-						$input = Widget::Input("{$field_name}[field]", $field_id, 'hidden');
-						$li->appendChild($input);
-
-						$group = new XMLElement('div');
-						$group->setAttribute('class', 'group');
-
-						$label = Widget::Label('XPath Expression');
-						$input = Widget::Input("{$field_name}[xpath]");
-						$label->appendChild($input);
-						$group->appendChild($label);
-
-						$label = Widget::Label('PHP Function <i>Optional</i>');
-						$input = Widget::Input("{$field_name}[php]");
-						$label->appendChild($input);
-						$group->appendChild($label);
-
-						$li->appendChild($group);
-
-						$label = Widget::Label();
-						$label->setAttribute('class', 'meta');
-						$input = Widget::Input("fields[unique-field]", $field_id, 'radio');
 
 						$label->setValue($input->generate(false) . ' Is unique');
 						$li->appendChild($label);
@@ -929,12 +934,12 @@
 			}
 
 			$this->_pagination = (object)array(
-				'page'		=> (
+				'page' => (
 					isset($_GET['pg']) && $_GET['pg'] > 1
 						? $_GET['pg']
 						: 1
 				),
-				'length'	=> Symphony::Engine()->Configuration->get('pagination_maximum_rows', 'symphony')
+				'length' => Symphony::Configuration()->get('pagination_maximum_rows', 'symphony')
 			);
 
 			$this->_importers = $this->_driver->getXMLImporters(
