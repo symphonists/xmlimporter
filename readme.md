@@ -1,9 +1,9 @@
 # XML Importer
 
-__Version:__ 1.0.0  
-__Author:__ [Rowan Lewis](http://rowanlewis.com/) Rowan Lewis <me@rowanlewis.com>, [Nick Dunn](http://nick-dunn.co.uk/)  
-__Build Date:__ 3 March 2011  
-__Requirements:__ Symphony 2.2  
+__Version:__ 1.0.0
+__Author:__ [Rowan Lewis](http://rowanlewis.com/) Rowan Lewis <me@rowanlewis.com>, [Nick Dunn](http://nick-dunn.co.uk/)
+__Build Date:__ 3 March 2011
+__Requirements:__ Symphony 2.2
 
 
 ## Description
@@ -42,7 +42,7 @@ Take a look at the source of this feed and you'll see that it uses XML namespace
 * Name: `georss`, URI: `http://www.georss.org/georss`
 
 **Included Elements** is an XPath expression representing each XML node that you want to convert into a Symphony entry. In our example we want to loop over each `<item>` node in the RSS feed:
-	
+
 	/rss/channel/item
 
 This can also be written as:
@@ -57,12 +57,12 @@ Now we configure the values for each field in our new entry. Start by selecting 
 Click **Add item** to configure the `Permalink` field. You will see three options appear: **XPath Expression**, **PHP Function** and **Is unique**.
 
 Since our **Included Elements** are going to be `<item>` elements from the RSS feed, here is an example:
-	
+
 	<item>
 	</item>
 
 The **XPath Expression** for the `Permalink` field is therefore going to be relative to an `<item>` element. To get the tweet text the XPath would be:
-	
+
 	permalink/text()
 
 Remember we want the text value (`text()`) and not the element itself!
