@@ -66,7 +66,7 @@
 			}
 
 			$entryManager = new EntryManager(Symphony::Engine());
-			$fieldManager = new FieldManager(Symphony::Engine());
+			$fieldManager = $entryManager->fieldManager;
 
 			set_time_limit(900);
 			set_error_handler('handleXMLError');
@@ -263,11 +263,11 @@
 			$options = $this->options();
 			$existing = array();
 
-			$sectionManager = new SectionManager(Symphony::Engine());
+			$sectionManager = $entryManager->sectionManager;
 			$section = $sectionManager->fetch($options['section']);
 
 			if ((integer)$options['unique-field'] > 0) {
-				$fieldManager = new FieldManager(Symphony::Engine());
+				$fieldManager = $entryManager->fieldManager;
 				$field = $fieldManager->fetch($options['unique-field']);
 
 				if (!empty($field)) foreach ($this->_entries as $index => $current) {
@@ -279,7 +279,7 @@
 					$field->buildDSRetrivalSQL($data, $joins, $where);
 
 					$group = $field->requiresSQLGrouping();
-					$entries = $entryManager->fetch(null, $options['section'], 1, null, $where, $joins, false, false);
+					$entries = $entryManager->fetch(null, $options['section'], 1, null, $where, $joins, $group, false, null, false);
 
 					if (is_array($entries) && !empty($entries)) {
 						$existing[$index] = $entries[0]['id'];
@@ -310,9 +310,7 @@
 						$entry->set('importer_status', 'skipped');
 						continue;
 					}
-				}
 
-				if ($edit) {
 					###
 					# Delegate: XMLImporterEntryPreEdit
 					# Description: Just prior to editing of an Entry.
@@ -324,8 +322,11 @@
 							'entry'		=> &$entry
 						)
 					);
+
+					$entryManager->edit($entry);
 				}
 
+				// Create a new entry
 				else {
 					###
 					# Delegate: XMLImporterEntryPreCreate
@@ -338,13 +339,7 @@
 							'entry'		=> &$entry
 						)
 					);
-				}
 
-				if ($entry->get('id')) {
-					$entryManager->edit($entry);
-				}
-
-				else {
 					$entryManager->add($entry);
 				}
 
