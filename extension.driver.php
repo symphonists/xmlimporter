@@ -12,7 +12,7 @@
 			return array(
 				'name'			=> 'XML Importer',
 				'version'		=> '1.1.0',
-				'release-date'	=> 'unreleased',
+				'release-date'	=> '2011-11-21',
 				'author'		=> array(
 					array(
 						'name'		=> 'Nick Dunn',

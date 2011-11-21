@@ -2,7 +2,7 @@
 
 - Version: 1.1.0
 - Author: [Rowan Lewis](http://rowanlewis.com/), [Nick Dunn](http://nick-dunn.co.uk/), [Brendan Abbott](brendan@bloodbone.ws)
-- Release Date: unreleased
+- Release Date: 21st November 2011
 - Requirements: Symphony 2.2
 
 
