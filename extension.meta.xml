@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<extension id="xmlimporter">
+	<name>XML Importer</name>
+	<description>From XML to entries in an instant</description>
+	<repo type="github">https://github.com/symphonists/xmlimporter</repo>
+	<url type="discuss">http://symphony-cms.com/discuss/thread/36868/</url>
+	<types>
+		<type>Other</type>
+		<type>Workflow</type>
+	</types>
+	<authors>
+		<author>
+			<name github="rowan-lewis" symphony="buzzomatic">Rowan Lewis</name>
+			<website>http://nbsp.io/</website>
+		</author>
+		<author>
+			<name github="nickdunn" symphony="nickdunn">Nick Dunn</name>
+			<website>http://nick-dunn.co.uk</website>
+		</author>
+		<author>
+			<name github="brendo" symphony="brendo">Brendan Abbott</name>
+		</author>
+	</authors>
+	<releases>
+		<release version="1.1.0" date="2011-11-21" min="2.2">
+			 - Fix issues with XPath and namespaces
+			 - Add `$entry_id` to `prepareImportValue` function
+			 - Added README information about the `prepareImportValue` function
+			 - Use the unique Duplicator (where available) to improve the UX
+			 - Tiny performance enhancements
+		</release>
+		<release version='1.0.0' date='2011-03-03' min='2.2'>
+			 - Updated to be compatible with Symphony 2.2
+			 - Improved validation by adding an XPath validator.
+			 - Improved handling of automatic namespace fetching.
+		</release>
+		<release version='0.1.0' date='2010-01-10' min='2.0.7' max='2.2'>
+			- Initial beta release for Symphony 2.0.7.
+		</release>
+	</releases>
+</extension>
