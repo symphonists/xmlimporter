@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<extension id="xmlimporter">
+<extension id="xmlimporter" status="released" xmlns="http://symphony-cms.com/schemas/extension/1.0">
 	<name>XML Importer</name>
 	<description>From XML to entries in an instant</description>
 	<repo type="github">https://github.com/symphonists/xmlimporter</repo>
