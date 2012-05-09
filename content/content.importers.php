@@ -1139,8 +1139,7 @@
 				array('run', false, 'Run')
 			);
 
-			$actions->appendChild(Widget::Select('with-selected', $options));
-			$actions->appendChild(Widget::Input('action[apply]', 'Apply', 'submit'));
+			$actions->appendChild(Widget::Apply($options));
 
 			$this->Form->appendChild($actions);
 
