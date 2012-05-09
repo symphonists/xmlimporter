@@ -24,8 +24,8 @@
 		protected $_table_columns = array();
 		protected $_table_direction = 'asc';
 
-		public function __construct(&$parent){
-			parent::__construct($parent);
+		public function __construct(){
+			parent::__construct();
 
 			$this->_uri = SYMPHONY_URL . '/extension/xmlimporter';
 			$this->_driver = Symphony::ExtensionManager()->create('xmlimporter');
@@ -670,8 +670,7 @@
 
 		// Section ------------------------------------------------------------
 
-			$sectionManager = new SectionManager(Symphony::Engine());
-			$sections = $sectionManager->fetch(null, 'ASC', 'name');
+			$sections = SectionManager::fetch(null, 'ASC', 'name');
 			$options = array();
 
 			if (is_array($sections)) {
@@ -1140,8 +1139,7 @@
 				array('run', false, 'Run')
 			);
 
-			$actions->appendChild(Widget::Select('with-selected', $options));
-			$actions->appendChild(Widget::Input('action[apply]', 'Apply', 'submit'));
+			$actions->appendChild(Widget::Apply($options));
 
 			$this->Form->appendChild($actions);
 
