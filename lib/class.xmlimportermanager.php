@@ -1,6 +1,6 @@
 <?php
 
-	class XMLImporterManager extends Manager {
+	class XMLImporterManager {
 		protected $_sort_column = '';
 		protected $_sort_direction = '';
 		protected $paths = array();
@@ -54,18 +54,36 @@
 			return strnatcasecmp($a[$this->_sort_column], $b[$this->_sort_column]);
 		}
 
-        public function create($name) {
+		public function about($name){
+
 			$classname = $this->__getClassName($name);
 			$path = $this->__getDriverPath($name);
 
-			if (!@is_file($path)) return false;
+			if(!@file_exists($path)) return false;
 
-			if (!class_exists($classname)) require_once($path);
+			require_once($path);
 
-			$this->_pool[] = new $classname(Symphony::Engine());
+			$handle = $this->__getHandleFromFilename(basename($path));
 
-			return end($this->_pool);
-        }
+			if(is_callable(array($classname, 'about'))){
+				$about = call_user_func(array($classname, 'about'));
+				return array_merge($about, array('handle' => $handle));
+			}
+
+		}
+
+		public function create($name) {
+				$classname = $this->__getClassName($name);
+				$path = $this->__getDriverPath($name);
+
+				if (!@is_file($path)) return false;
+
+				if (!class_exists($classname)) require_once($path);
+
+				$this->_pool[] = new $classname(Symphony::Engine());
+
+				return end($this->_pool);
+		}
 
 		public function listAll($sort_column = 'name', $sort_direction = 'asc') {
 			$this->_sort_column = $sort_column;
