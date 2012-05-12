@@ -138,15 +138,14 @@
 					}
 
 					$fieldset->appendChild(new XMLElement(
-						'p', sprintf(
-							'Import failed because %d entries did not validate, a total of %d entries passed.',
+						'p', __('Import failed because %d entries did not validate, a total of %d entries passed.', array(
 							count($failed), count($entries) - count($failed)
-						)
+						))
 					));
 
 					foreach ($failed as $index => $current) {
 						$fieldset->appendChild(new XMLElement(
-							'h3', sprintf('Import entry #%d', $current['position'])
+							'h3', __('Import entry #%d', array($current['position']))
 						));
 
 					// Errors -------------------------------------------------
@@ -203,12 +202,12 @@
 					}
 
 					$fieldset->appendChild(new XMLElement(
-						'p', sprintf(
-							'Import completed successfully: %d new entries were created, %d updated, and %d skipped.',
+						'p', __(
+							'Import completed successfully: %d new entries were created, %d updated, and %d skipped.', array(
 							$importer_result['created'],
 							$importer_result['updated'],
 							$importer_result['skipped']
-						)
+						))
 					));
 
 				}
@@ -257,16 +256,16 @@
 
 			// Name:
 			if (!isset($fields['about']['name']) || trim($fields['about']['name']) == '') {
-				$this->_errors['name'] = 'Name must not be empty.';
+				$this->_errors['name'] = __('Name must not be empty.');
 			}
 
 			// Source:
 			if (!isset($fields['source']) || trim($fields['source']) == '') {
-				$this->_errors['source'] = 'Source must not be empty.';
+				$this->_errors['source'] = __('Source must not be empty.');
 			}
 
 			else if (!filter_var($fields['source'], FILTER_VALIDATE_URL)) {
-				$this->_errors['source'] = 'Source is not a valid URL.';
+				$this->_errors['source'] = __('Source is not a valid URL.');
 			}
 
 		// Namespaces ---------------------------------------------------------
@@ -320,7 +319,7 @@
 
 			// Included elements:
 			if (!isset($fields['included-elements']) || trim($fields['included-elements']) == '') {
-				$this->_errors['included-elements'] = 'Included Elements must not be empty.';
+				$this->_errors['included-elements'] = __('Included Elements must not be empty.');
 			}
 
 			else {
@@ -785,7 +784,7 @@
 						$group = new XMLElement('div');
 						$group->setAttribute('class', 'two columns');
 
-						$label = Widget::Label('XPath Expression');
+						$label = Widget::Label(__('XPath Expression'));
 						$label->setAttribute('class', 'column');
 						$input = Widget::Input(
 							"{$field_name}[xpath]",
@@ -803,7 +802,7 @@
 
 						$group->appendChild($label);
 
-						$label = Widget::Label('PHP Function <i>Optional</i>');
+						$label = Widget::Label(__('PHP Function <i>Optional</i>'));
 						$label->setAttribute('class', 'column');
 						$input = Widget::Input(
 							"{$field_name}[php]",
@@ -861,7 +860,7 @@
 					$input->setAttribute('checked', 'checked');
 				}
 
-				$label->setValue($input->generate(false) . ' Can update existing entries');
+				$label->setValue($input->generate(false) . ' ' . __('Can update existing entries'));
 				$fieldset->appendChild($label);
 
 				$help = new XMLElement('p');
@@ -1090,7 +1089,7 @@
 				}
 
 				else {
-					$col_url = Widget::TableData('None', 'inactive');
+					$col_url = Widget::TableData(__('None'), 'inactive');
 				}
 
 				if (!empty($importer['included-elements'])) {
@@ -1100,7 +1099,7 @@
 				}
 
 				else {
-					$col_elements = Widget::TableData('None', 'inactive');
+					$col_elements = Widget::TableData(__('None'), 'inactive');
 				}
 
 				if (isset($importer['about']['author']['website'])) {
@@ -1122,7 +1121,7 @@
 				}
 
 				else {
-					$col_author = Widget::TableData('None', 'inactive');
+					$col_author = Widget::TableData(__('None'), 'inactive');
 				}
 
 				$tableBody[] = Widget::TableRow(
@@ -1146,9 +1145,9 @@
 			$actions->setAttribute('class', 'actions');
 
 			$options = array(
-				array(null, false, 'With Selected...'),
-				array('delete', false, 'Delete', 'confirm'),
-				array('run', false, 'Run')
+				array(null, false, __('With Selected...')),
+				array('delete', false, __('Delete'), 'confirm'),
+				array('run', false, __('Run'))
 			);
 
 			$actions->appendChild(Widget::Apply($options));
