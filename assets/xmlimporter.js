@@ -7,13 +7,7 @@ jQuery(document).ready(function() {
 var XmlImporter = {
 	init: function() {
 		var self = this;
-
-		this.showSectionFields($('select[name="fields[section]"]').val());
-
-		$('select[name="fields[section]"]').bind('change', function() {
-			self.showSectionFields($(this).val());
-		});
-
+		
 		$('ol.namespaces-duplicator').symphonyDuplicator({
 			orderable:	true
 		});
@@ -21,10 +15,16 @@ var XmlImporter = {
 		$('ol.section-fields').symphonyDuplicator({
 			orderable:	true
 		});
+
+		this.showSectionFields($('select[name="fields[section]"]').val());
+
+		$('select[name="fields[section]"]').bind('change', function() {
+			self.showSectionFields($(this).val());
+		});
 	},
 
 	showSectionFields: function(id) {
-		$('ol.section-fields').hide();
-		$('#section-' + id).show();
+		$('ol.section-fields').closest('.frame').hide();
+		$('#section-' + id).closest('.frame').show();
 	}
 }

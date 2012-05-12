@@ -54,7 +54,7 @@
 	-------------------------------------------------------------------------*/
 
 		public function __prepareRun($context) {
-			$importManager = new XmlImporterManager(Symphony::Engine());
+			$importManager = new XmlImporterManager();
 			$html_errors = ini_get('html_errors');
 			$source = null;
 
@@ -410,7 +410,7 @@
 		// Status: ------------------------------------------------------------
 
 			if (!$this->_valid) {
-				$message = __('An error occurred while processing this form <a href="#error">See below for details.</a>');
+				$message = __('An error occurred while processing this form.');
 
 				if ($this->_errors['other']) {
 					$message = $this->_errors['other'];
@@ -487,9 +487,10 @@
 			$fieldset->appendChild(new XMLElement('legend', __('Essentials')));
 
 			$group = new XMLElement('div');
-			$group->setAttribute('class', 'group');
+			$group->setAttribute('class', 'two columns');
 
 			$label = Widget::Label(__('Name'));
+			$label->setAttribute('class', 'column');
 			$label->appendChild(Widget::Input(
 				'fields[about][name]',
 				General::sanitize(
@@ -500,12 +501,13 @@
 			));
 
 			if (isset($this->_errors['name'])) {
-				$label = Widget::wrapFormElementWithError($label, $this->_errors['name']);
+				$label = Widget::Error($label, $this->_errors['name']);
 			}
 
 			$group->appendChild($label);
 
 			$label = Widget::Label(__('Description <i>Optional</i>'));
+			$label->setAttribute('class', 'column');
 			$label->appendChild(Widget::Input(
 				'fields[about][description]',
 				General::sanitize(
@@ -535,7 +537,7 @@
 			));
 
 			if (isset($this->_errors['source'])) {
-				$label = Widget::wrapFormElementWithError($label, $this->_errors['source']);
+				$label = Widget::Error($label, $this->_errors['source']);
 			}
 
 			$fieldset->appendChild($label);
@@ -553,18 +555,21 @@
 
 			$namespaces = new XMLElement('ol');
 			$namespaces->setAttribute('class', 'namespaces-duplicator');
+			$namespaces->setAttribute('data-add', __('Add namespace'));
+			$namespaces->setAttribute('data-remove', __('Remove namespace'));
 
 			if (isset($this->_fields['namespaces']) and is_array($this->_fields['namespaces'])) {
 				foreach ($this->_fields['namespaces'] as $index => $data) {
 					$name = "fields[namespaces][{$index}]";
 
 					$li = new XMLElement('li');
-					$li->appendChild(new XMLElement('h4', __('Namespace')));
+					$li->appendChild(new XMLElement('header', '<h4>' . __('Namespace') . '</h4>'));
 
 					$group = new XMLElement('div');
-					$group->setAttribute('class', 'group');
+					$group->setAttribute('class', 'two columns');
 
 					$label = Widget::Label(__('Name'));
+					$label->setAttribute('class', 'column');
 					$input = Widget::Input(
 						"{$name}[name]",
 						General::sanitize(
@@ -577,6 +582,7 @@
 					$group->appendChild($label);
 
 					$label = Widget::Label(__('URI'));
+					$label->setAttribute('class', 'column');
 					$input = Widget::Input(
 						"{$name}[uri]",
 						General::sanitize(
@@ -596,21 +602,23 @@
 			$name = "fields[namespaces][-1]";
 
 			$li = new XMLElement('li');
-			$li->appendChild(new XMLElement('h4', __('Namespace')));
+			$li->appendChild(new XMLElement('header', '<h4>' . __('Namespace') . '</h4>'));
 			$li->setAttribute('class', 'template');
 
 			$input = Widget::Input("{$name}[field]", $field_id, 'hidden');
 			$li->appendChild($input);
 
 			$group = new XMLElement('div');
-			$group->setAttribute('class', 'group');
+			$group->setAttribute('class', 'two columns');
 
 			$label = Widget::Label(__('Name'));
+			$label->setAttribute('class', 'column');
 			$input = Widget::Input("{$name}[name]");
 			$label->appendChild($input);
 			$group->appendChild($label);
 
 			$label = Widget::Label(__('URI'));
+			$label->setAttribute('class', 'column');
 			$input = Widget::Input("{$name}[uri]");
 			$label->appendChild($input);
 			$group->appendChild($label);
@@ -634,7 +642,7 @@
 			)));
 
 			if (isset($this->_errors['discover-namespaces'])) {
-				$label = Widget::wrapFormElementWithError($label, $this->_errors['discover-namespaces']);
+				$label = Widget::Error($label, $this->_errors['discover-namespaces']);
 			}
 
 			$fieldset->appendChild($label);
@@ -656,7 +664,7 @@
 			));
 
 			if (isset($this->_errors['included-elements'])) {
-				$label = Widget::wrapFormElementWithError($label, $this->_errors['included-elements']);
+				$label = Widget::Error($label, $this->_errors['included-elements']);
 			}
 
 			$fieldset->appendChild($label);
@@ -719,20 +727,22 @@
 						$li = new XMLElement('li');
 						$li->setAttribute('class', 'unique template');
 						$li->setAttribute('data-type', $field->get('element_name'));
-						$li->appendChild(new XMLElement('h4', $field->get('label')));
+						$li->appendChild(new XMLElement('header', '<h4>' . $field->get('label') . '</h4>'));
 
 						$input = Widget::Input("{$field_name}[field]", $field_id, 'hidden');
 						$li->appendChild($input);
 
 						$group = new XMLElement('div');
-						$group->setAttribute('class', 'group');
+						$group->setAttribute('class', 'two columns');
 
 						$label = Widget::Label('XPath Expression');
+						$label->setAttribute('class', 'column');
 						$input = Widget::Input("{$field_name}[xpath]");
 						$label->appendChild($input);
 						$group->appendChild($label);
 
 						$label = Widget::Label('PHP Function <i>Optional</i>');
+						$label->setAttribute('class', 'column');
 						$input = Widget::Input("{$field_name}[php]");
 						$label->appendChild($input);
 						$group->appendChild($label);
@@ -767,15 +777,16 @@
 						$li = new XMLElement('li');
 						$li->setAttribute('class', 'unique');
 						$li->setAttribute('data-type', $field->get('element_name'));
-						$li->appendChild(new XMLElement('h4', $field->get('label')));
+						$li->appendChild(new XMLElement('header', '<h4>' . $field->get('label') . '</h4>'));
 
 						$input = Widget::Input("{$field_name}[field]", $field_id, 'hidden');
 						$li->appendChild($input);
 
 						$group = new XMLElement('div');
-						$group->setAttribute('class', 'group');
+						$group->setAttribute('class', 'two columns');
 
 						$label = Widget::Label('XPath Expression');
+						$label->setAttribute('class', 'column');
 						$input = Widget::Input(
 							"{$field_name}[xpath]",
 							General::sanitize(
@@ -787,12 +798,13 @@
 						$label->appendChild($input);
 
 						if (isset($this->_errors['fields'][$index])) {
-							$label = Widget::wrapFormElementWithError($label, $this->_errors['fields'][$index]);
+							$label = Widget::Error($label, $this->_errors['fields'][$index]);
 						}
 
 						$group->appendChild($label);
 
 						$label = Widget::Label('PHP Function <i>Optional</i>');
+						$label->setAttribute('class', 'column');
 						$input = Widget::Input(
 							"{$field_name}[php]",
 							General::sanitize(
@@ -1219,5 +1231,3 @@
 			}
 		}
 	}
-
-?>
