@@ -1,15 +1,14 @@
 # XML Importer
 
-- Version: 1.1.0
+- Version: 2.0.0
 - Author: [Rowan Lewis](http://rowanlewis.com/), [Nick Dunn](http://nick-dunn.co.uk/), [Brendan Abbott](brendan@bloodbone.ws)
-- Release Date: 21st November 2011
-- Requirements: Symphony 2.2
+- Release Date: unreleased
+- Requirements: Symphony 2.3
 
 
 ## Description
 
 XML Importer is a way of creating repeatable templates to import data from XML feeds directly into Symphony sections. It provides a way of mapping content from XML nodes directly onto fields in your sections, and the ability to both create new and update existing entries.
-
 
 ## Installation
 

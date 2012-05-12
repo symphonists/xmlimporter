@@ -22,17 +22,21 @@
 		</author>
 	</authors>
 	<releases>
-		<release version="1.1.0" date="2011-11-21" min="2.2">
-			 - Fix issues with XPath and namespaces
-			 - Add `$entry_id` to `prepareImportValue` function
-			 - Added README information about the `prepareImportValue` function
-			 - Use the unique Duplicator (where available) to improve the UX
-			 - Tiny performance enhancements
+		<release version="2.0.0" min="2.3">
+			- Symphony 2.3 support
+			- Improved localisation support
+		</release>
+		<release version="1.1.0" date="2011-11-21" min="2.2" max="2.2.x">
+			- Fix issues with XPath and namespaces
+			- Add `$entry_id` to `prepareImportValue` function
+			- Added README information about the `prepareImportValue` function
+			- Use the unique Duplicator (where available) to improve the UX
+			- Tiny performance enhancements
 		</release>
 		<release version='1.0.0' date='2011-03-03' min='2.2'>
-			 - Updated to be compatible with Symphony 2.2
-			 - Improved validation by adding an XPath validator.
-			 - Improved handling of automatic namespace fetching.
+			- Updated to be compatible with Symphony 2.2
+			- Improved validation by adding an XPath validator.
+			- Improved handling of automatic namespace fetching.
 		</release>
 		<release version='0.1.0' date='2010-01-10' min='2.0.7' max='2.2'>
 			- Initial beta release for Symphony 2.0.7.
