@@ -98,6 +98,13 @@
 				$passed = false;
 			}
 
+			if(!is_array($options['fields'])) {
+				$this->_errors[] = __('No field mappings have been set for this XML Importer.');
+				$passed = false;
+			}
+
+			if (!$passed) return self::__ERROR_PREPARING__;
+
 			// Load document:
 			$xml = new DOMDocument();
 			$xml->loadXML($data);
