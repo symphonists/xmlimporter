@@ -103,7 +103,7 @@
 				$passed = false;
 			}
 
-			if (!$passed) return self::__ERROR_PREPARING__;
+			if ($passed === false) return self::__ERROR_PREPARING__;
 
 			// Load document:
 			$xml = new DOMDocument();
