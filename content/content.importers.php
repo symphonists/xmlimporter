@@ -552,8 +552,9 @@
 
 		// Namespaces ---------------------------------------------------------
 
+			$namespaces_frame = new XMLElement('div');
+			$namespaces_frame->setAttribute('class', 'frame namespaces-duplicator');
 			$namespaces = new XMLElement('ol');
-			$namespaces->setAttribute('class', 'namespaces-duplicator');
 			$namespaces->setAttribute('data-add', __('Add namespace'));
 			$namespaces->setAttribute('data-remove', __('Remove namespace'));
 
@@ -625,7 +626,8 @@
 			$li->appendChild($group);
 			$namespaces->appendChild($li);
 
-			$fieldset->appendChild($namespaces);
+			$namespaces_frame->appendChild($namespaces);
+			$fieldset->appendChild($namespaces_frame);
 
 		// Discover Namespaces ------------------------------------------------
 
@@ -711,9 +713,11 @@
 				$fieldset->appendChild($label);
 
 				foreach ($sections as $section) {
+					$section_frame = new XMLElement('div', null, array(
+						'class' => 'frame section-fields',
+						'id' => 'section-' . $section->get('id')
+					));
 					$section_fields = new XMLElement('ol');
-					$section_fields->setAttribute('class', 'section-fields');
-					$section_fields->setAttribute('id', 'section-' . $section->get('id'));
 					$fields = $section->fetchFields();
 
 					if ($fields === false) continue;
@@ -830,7 +834,8 @@
 						$section_fields->appendChild($li);
 					}
 
-					$fieldset->appendChild($section_fields);
+					$section_frame->appendChild($section_fields);
+					$fieldset->appendChild($section_frame);
 				}
 
 				$label = Widget::Label();

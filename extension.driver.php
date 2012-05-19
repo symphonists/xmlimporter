@@ -238,7 +238,7 @@
 
 			try {
 				ini_set('html_errors', false);
-				$xpath->evaluate($expression);
+				$xpath->evaluate('string(' . $expression . ')');
 			}
 
 			catch (Exception $exception) { }
