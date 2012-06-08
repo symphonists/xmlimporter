@@ -490,6 +490,9 @@
 				)
 			));
 			$this->appendSubheading($header, $button);
+			$this->insertBreadcrumbs(array(
+				Widget::Anchor(__('XML Importers'), $this->_uri . '/importers/'),
+			));
 
 		// About --------------------------------------------------------------
 
