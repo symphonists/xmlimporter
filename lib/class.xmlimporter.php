@@ -80,11 +80,14 @@
 				// Support {$root}
 				$options['source'] = str_replace('{$root}', URL, $options['source']);
 
+				// Parse timeout, default is 60
+				$timeout = isset($options['timeout']) ? (int)$options['timeout'] : 60;
+
 				// Fetch document:
 				$gateway = new Gateway();
 				$gateway->init();
 				$gateway->setopt('URL', $options['source']);
-				$gateway->setopt('TIMEOUT', 60);
+				$gateway->setopt('TIMEOUT', $timeout);
 				$data = $gateway->exec();
 
 				$info = $gateway->getInfoLast();

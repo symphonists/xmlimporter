@@ -290,7 +290,7 @@
 				$gateway = new Gateway();
 				$gateway->init();
 				$gateway->setopt('URL', $evaluated_source);
-				$gateway->setopt('TIMEOUT', 60);
+				$gateway->setopt('TIMEOUT', (int)$fields['timeout']);
 				$data = $gateway->exec();
 
 				if ($data === false) {
@@ -887,6 +887,11 @@
 
 		// Footer -------------------------------------------------------------
 
+			$timeout = isset($this->_fields['timeout']) ? $this->_fields['timeout'] : 60;
+			$this->Form->appendChild(
+				Widget::Input('fields[timeout]', (string)$timeout, 'hidden')
+			);
+
 			$div = new XMLElement('div');
 			$div->setAttribute('class', 'actions');
 			$div->appendChild(
@@ -1116,14 +1121,7 @@
 					$col_elements = Widget::TableData(__('None'), 'inactive');
 				}
 
-				if (isset($importer['about']['author']['website'])) {
-					$col_author = Widget::TableData(Widget::Anchor(
-						$importer['about']['author']['name'],
-						General::validateURL($importer['about']['author']['website'])
-					));
-				}
-
-				else if (isset($importer['about']['email'])) {
+				if (isset($importer['about']['email'])) {
 					$col_author = Widget::TableData(Widget::Anchor(
 						$importer['about']['author']['name'],
 						'mailto:' . $importer['about']['author']['email']

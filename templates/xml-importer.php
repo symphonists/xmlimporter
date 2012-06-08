@@ -8,7 +8,6 @@
 				'name'			=> %s,
 				'author'		=> array(
 					'name'			=> %s,
-					'website'		=> %s,
 					'email'			=> %s
 				),
 				'description'	=> %s,
@@ -25,6 +24,7 @@
 				'included-elements'	=> %s,
 				'namespaces'		=> %s,
 				'source'			=> %s,
+				'timeout'			=> %s,
 				'section'			=> %s,
 				'unique-field'		=> %s
 			);

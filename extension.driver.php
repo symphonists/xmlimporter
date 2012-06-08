@@ -128,7 +128,6 @@
 			if (!isset($new['about']['author'])) {
 				$new['about']['author'] = array(
 					'name'		=> Symphony::Engine()->Author->getFullName(),
-					'website'	=> URL,
 					'email'		=> Symphony::Engine()->Author->get('email')
 				);
 			}
@@ -185,9 +184,6 @@
 				// Author:
 				var_export($new['about']['author']['name'], true),
 
-				// Website:
-				var_export($new['about']['author']['website'], true),
-
 				// Email:
 				var_export($new['about']['author']['email'], true),
 
@@ -204,6 +200,7 @@
 				var_export($new['included-elements'], true),
 				var_export($new['namespaces'], true),
 				var_export($new['source'], true),
+				var_export($new['timeout'], true),
 				var_export($new['section'], true),
 				var_export($new['unique-field'], true)
 			);
