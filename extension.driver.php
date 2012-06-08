@@ -257,5 +257,3 @@
 			return $value;
 		}
 	}
-
-?>

@@ -1,20 +1,13 @@
 # XML Importer
 
-- Version: 2.0.0
-- Author: [Rowan Lewis](http://rowanlewis.com/), [Nick Dunn](http://nick-dunn.co.uk/), [Brendan Abbott](brendan@bloodbone.ws)
-- Release Date: unreleased
-- Requirements: Symphony 2.3
-
-
-## Description
-
 XML Importer is a way of creating repeatable templates to import data from XML feeds directly into Symphony sections. It provides a way of mapping content from XML nodes directly onto fields in your sections, and the ability to both create new and update existing entries.
 
 ## Installation
 
-1. Upload the `xmlimporter` folder in this archive to your Symphony 'extensions' folder
+1. Upload the `xmlimporter` folder to your Symphony `/extensions` folder
 2. Enable it by selecting "XML Importer" on the System > Extensions page, choose Enable from the with-selected menu, then click Apply
 3. Use the extension from the Blueprints > XML Importers menu
+
 
 ## Creating an Importer (tutorial)
 An Importer is similar to a Dynamic XML Datasource in its configuration. Let's create a fictitious importer to store your Twitter messages into a section named "Tweets" that has three fields:
@@ -89,7 +82,7 @@ If you want to use the same Importer in multiple feeds (if you have more than on
 
 But the feed URL can be overridden by appending a `source` parameter:
 
-	http://symphony-207-contributions/symphony/extension/xmlimporter/importers/run/twitter/?source=http://twitter.com/statuses/public_timeline.rss
+	http://example.com/symphony/extension/xmlimporter/importers/run/twitter/?source=http://twitter.com/statuses/public_timeline.rss
 
 
 ## Using PHP Functions
@@ -111,3 +104,9 @@ Notice that you do not need to pass `$value` as this will be done for you. To ad
 ## Your fields and the XML Importer
 
 The XMLImporter allows fields to implement a `prepareImportValue()` function which will preprocess the value from XML before being passed to `processRawFieldData()`. The XML Importer will check for the Field class for the `prepareImportValue()` otherwise it will fall back to rudimentary processing. The `prepareImportValue` function will be passed the value of the XPath and the `entry_id`, and should return a value that your Field's `processRawFieldData` function can accept.
+
+## Advanced Tips
+
+- The `{$root}` parameter can used in your source URL which will be evaluated at run time to the value of the Symphony constant URL, eg. `{$root}/feed/news/` becomes `http://example.com/feed/news/`
+- By default Symphony will set the timeout for retrieving the source URL to be 60 seconds. This can be updated by modifying the `timeout` setting in your saved XML Importer file which are located in `/workspace/xml-importers/`.
+
