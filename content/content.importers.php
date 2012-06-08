@@ -272,8 +272,12 @@
 				$this->_errors['source'] = __('Source must not be empty.');
 			}
 
-			else if(!filter_var($fields['source'], FILTER_VALIDATE_URL)) {
-				$this->_errors['source'] = __('Source is not a valid URL.');
+			else {
+				// Support {$root}
+				$evaluated_source = str_replace('{$root}', URL, $fields['source']);
+				if(!filter_var($evaluated_source, FILTER_VALIDATE_URL)) {
+					$this->_errors['source'] = __('Source is not a valid URL.');
+				}
 			}
 
 		// Namespaces ---------------------------------------------------------
@@ -285,7 +289,7 @@
 			) {
 				$gateway = new Gateway();
 				$gateway->init();
-				$gateway->setopt('URL', $fields['source']);
+				$gateway->setopt('URL', $evaluated_source);
 				$gateway->setopt('TIMEOUT', 60);
 				$data = $gateway->exec();
 

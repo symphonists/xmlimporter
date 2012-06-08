@@ -77,6 +77,9 @@
 					$options['source'] = $source;
 				}
 
+				// Support {$root}
+				$options['source'] = str_replace('{$root}', URL, $options['source']);
+
 				// Fetch document:
 				$gateway = new Gateway();
 				$gateway->init();
@@ -84,8 +87,9 @@
 				$gateway->setopt('TIMEOUT', 60);
 				$data = $gateway->exec();
 
-				if (empty($data)) {
-					$this->_errors[] = __('No data to import.');
+				$info = $gateway->getInfoLast();
+				if (empty($data) || $info['http_code'] >= 400) {
+					$this->_errors[] = __('No data to import. URL returned HTTP code %d', array($info['http_code']));
 					$passed = false;
 				}
 			}
@@ -379,5 +383,3 @@
 			}
 		}
 	}
-
-?>
