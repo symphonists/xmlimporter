@@ -70,6 +70,7 @@
 
 			$self = $this; // Fucking PHP...
 			$options = $this->options();
+			$passed = true;
 
 			if ($remote) {
 				if (!is_null($source)) {

@@ -96,7 +96,15 @@
 					__('Run XML Importer')
 				)
 			));
-			$this->appendSubheading(__('Run XML Importer'));
+
+			$button = Widget::Anchor(
+				__('Edit XML Importer'),
+				$this->_uri . '/importers/edit/' . $this->_context[1] . '/',
+				__('Edit XML Importer'),
+				'button'
+			);
+
+			$this->appendSubheading(__('Run XML Importer'), $button);
 
 			foreach ($this->_runs as $run) {
 				$importer = $run['importer'];
@@ -111,7 +119,7 @@
 				// Markup invalid:
 				if ($status == XMLImporter::__ERROR_PREPARING__) {
 					$fieldset->appendChild(new XMLElement(
-						'h3', 'Import Failed'
+						'h3', __('Import Failed')
 					));
 
 					$list = new XMLElement('ol');
@@ -126,7 +134,7 @@
 				// Invalid entry:
 				else if ($status == XMLImporter::__ERROR_VALIDATING__) {
 					$fieldset->appendChild(new XMLElement(
-						'h3', 'Import Failed'
+						'h3', __('Import Failed')
 					));
 
 					// Gather statistics:
@@ -188,7 +196,7 @@
 				// Passed:
 				else {
 					$fieldset->appendChild(new XMLElement(
-						'h3', 'Import Complete'
+						'h3', __('Import Complete')
 					));
 
 					$importer_result = array(
@@ -264,7 +272,7 @@
 				$this->_errors['source'] = __('Source must not be empty.');
 			}
 
-			else if (!filter_var($fields['source'], FILTER_VALIDATE_URL)) {
+			else if(!filter_var($fields['source'], FILTER_VALIDATE_URL)) {
 				$this->_errors['source'] = __('Source is not a valid URL.');
 			}
 
@@ -734,13 +742,14 @@
 						$group = new XMLElement('div');
 						$group->setAttribute('class', 'two columns');
 
-						$label = Widget::Label('XPath Expression');
+						$label = Widget::Label(__('XPath Expression'));
 						$label->setAttribute('class', 'column');
 						$input = Widget::Input("{$field_name}[xpath]");
 						$label->appendChild($input);
 						$group->appendChild($label);
 
-						$label = Widget::Label('PHP Function <i>Optional</i>');
+						$label = Widget::Label(__('PHP Function'));
+						$label->appendChild(new XMLElement('i', __('Optional')));
 						$label->setAttribute('class', 'column');
 						$input = Widget::Input("{$field_name}[php]");
 						$label->appendChild($input);
@@ -752,7 +761,7 @@
 						$label->setAttribute('class', 'meta');
 						$input = Widget::Input("fields[unique-field]", $field_id, 'radio');
 
-						$label->setValue($input->generate(false) . ' Is unique');
+						$label->setValue($input->generate(false) . ' ' . __('Is unique'));
 						$li->appendChild($label);
 						$section_fields->appendChild($li);
 					}
@@ -802,7 +811,8 @@
 
 						$group->appendChild($label);
 
-						$label = Widget::Label(__('PHP Function <i>Optional</i>'));
+						$label = Widget::Label(__('PHP Function'));
+						$label->appendChild(new XMLElement('i', __('Optional')));
 						$label->setAttribute('class', 'column');
 						$input = Widget::Input(
 							"{$field_name}[php]",
@@ -825,7 +835,7 @@
 							$input->setAttribute('checked', 'checked');
 						}
 
-						$label->setValue($input->generate(false) . ' Is unique');
+						$label->setValue($input->generate(false) . ' ' . __('Is unique'));
 						$li->appendChild($label);
 						$section_fields->appendChild($li);
 					}
@@ -835,7 +845,7 @@
 
 				$label = Widget::Label();
 				$label->setAttribute('class', 'meta');
-				$input = Widget::Input("fields[unique-field]", $field_id, 'radio');
+				$input = Widget::Input("fields[unique-field]", '0', 'radio');
 
 				if (isset($this->_fields['unique-field']) && !$this->_fields['unique-field']) {
 					$input->setAttribute('checked', 'checked');
