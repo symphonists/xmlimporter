@@ -1,30 +1,21 @@
-jQuery(document).ready(function() {
-	$ = jQuery;
+(function($) {
 
-	XmlImporter.init();
-});
+	$(document).ready(function() {
+		var sections = $('select[name="fields[section]"]'),
+			fields = $('div.section-fields'),
+			label = sections.parents('fieldset').find('p.label'),
+			namespaces = $('ol.namespaces-duplicator');
 
-var XmlImporter = {
-	init: function() {
-		var self = this;
-		
-		$('ol.namespaces-duplicator').symphonyDuplicator({
-			orderable:	true
+		// Initialise Duplicators
+		namespaces.add(fields).symphonyDuplicator({
+			orderable: true
 		});
 
-		$('ol.section-fields').symphonyDuplicator({
-			orderable:	true
-		});
+		// Select section
+		sections.on('change.xmlimporter', function selectSection() {
+			var id = $(this).val();
+			fields.detach().filter('#section-' + id).insertAfter(label);
+		}).trigger('change.xmlimporter');
+	});
 
-		this.showSectionFields($('select[name="fields[section]"]').val());
-
-		$('select[name="fields[section]"]').bind('change', function() {
-			self.showSectionFields($(this).val());
-		});
-	},
-
-	showSectionFields: function(id) {
-		$('ol.section-fields').closest('.frame').hide();
-		$('#section-' + id).closest('.frame').show();
-	}
-}
+})(jQuery.noConflict());		
