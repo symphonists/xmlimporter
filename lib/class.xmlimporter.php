@@ -220,21 +220,26 @@
 				foreach ($current['values'] as $field_id => $value) {
 					$field = FieldManager::fetch($field_id);
 
+					if(is_array($value) && count($value) === 1) {
+						$value = current($value);
+					}
+
 					// Adjust value?
-					if (method_exists($field, 'prepareImportValue')) {
-						$value = $field->prepareImportValue($value, $entry->get('id'));
+					if (method_exists($field, 'prepareImportValue') && method_exists($field, 'getImportModes')) {
+						$modes = $field->getImportModes();
+
+						if(is_array($modes) && !empty($modes)) {
+							$mode = current($modes);
+						}
+
+						$value = $field->prepareImportValue($value, $mode, $entry->get('id'));
 					}
 
 					// Handle different field types
-					// TODO: this should be done by the fields with the above function
 					else {
 						$type = $field->get('type');
 
-						if ($type == 'taglist') {
-							$value = implode(', ', $value);
-						}
-
-						else if ($type == 'select' || $type == 'selectbox_link' || $type == 'author') {
+						if ($type == 'author') {
 							if ($field->get('allow_multiple_selection') == 'no') {
 								$value = array(implode('', $value));
 							}
