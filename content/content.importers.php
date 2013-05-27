@@ -184,7 +184,12 @@
 						$xml->preserveWhiteSpace = false;
 						$xml->formatOutput = true;
 
-						$xml->loadXML($entry->ownerDocument->saveXML($entry));
+						if(is_null($entry->ownerDocument)) {
+							$xml->loadXML($entry->saveXML());
+						}
+						else {
+							$xml->loadXML($entry->ownerDocument->saveXML($entry));
+						}
 
 						$source = htmlentities($xml->saveXML($xml->documentElement), ENT_COMPAT, 'UTF-8');
 
