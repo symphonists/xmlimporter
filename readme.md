@@ -99,7 +99,7 @@ Functions more complex than one line are also possible, by adding them to the in
 
 	XMLImporterHelpers::markdownify
 
-Notice that you do not need to pass `$value` as this will be done for you. To add your own custom functions, add them to `/extensions/xmlimporter/lib/class.xmlimporterhelpers.php`. The method will be provided with a single argument, and should return a string.
+Notice that you do not need to pass `$value` as this will be done for you, as the method will be provided with a single argument, and should return a string. Since XMLImporter 2.1, you can add your own custom functions to `/workspace/xml-importers/class.xmlimporterhelpers.php`. Prior to this, custom functions were added to `/extensions/xmlimporter/lib/class.xmlimporterhelpers.php`, but this was changed for better flexibility and to match Symphony conventions better.
 
 ## Your fields and the XML Importer
 

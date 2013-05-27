@@ -5,7 +5,16 @@
 	require_once(TOOLKIT . '/class.entrymanager.php');
 	require_once(TOOLKIT . '/class.sectionmanager.php');
 
-	require_once(EXTENSIONS . '/xmlimporter/lib/class.xmlimporterhelpers.php');
+	// Attempt to load XMLImporter Helper functions from the workspace rather
+	// than the extension. If that file doesn't exist, then just load what
+	// is provided.
+	// @see https://github.com/symphonists/xmlimporter/issues/16
+	if(@file_exists(WORKSPACE . '/xml-importers/class.xmlimporterhelpers.php') === true) {
+		require_once(WORKSPACE . '/xml-importers/class.xmlimporterhelpers.php');
+	}
+	else if(@file_exists(EXTENSIONS . '/xmlimporter/lib/class.xmlimporterhelpers.php') === true) {
+		require_once(EXTENSIONS . '/xmlimporter/lib/class.xmlimporterhelpers.php');
+	}
 
 	class XMLImporter {
 		const __OK__ = 100;
