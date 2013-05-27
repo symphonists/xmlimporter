@@ -276,7 +276,7 @@
 					$passed = false;
 				}
 
-				else if (__ENTRY_OK__ != $entry->setDataFromPost($values, $error, true, true)) {
+				else if (__ENTRY_OK__ != $entry->setDataFromPost($values, $current['errors'], true, true)) {
 					$passed = false;
 				}
 
