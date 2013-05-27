@@ -73,16 +73,14 @@
 		}
 
 		public function create($name) {
-				$classname = $this->__getClassName($name);
-				$path = $this->__getDriverPath($name);
+			$classname = $this->__getClassName($name);
+			$path = $this->__getDriverPath($name);
 
-				if (!@is_file($path)) return false;
+			if (!@is_file($path)) return false;
 
-				if (!class_exists($classname)) require_once($path);
+			if (!class_exists($classname)) require_once($path);
 
-				$this->_pool[] = new $classname(Symphony::Engine());
-
-				return end($this->_pool);
+			return new $classname;
 		}
 
 		public function listAll($sort_column = 'name', $sort_direction = 'asc') {
