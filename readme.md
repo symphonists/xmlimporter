@@ -105,6 +105,8 @@ Notice that you do not need to pass `$value` as this will be done for you, as th
 
 The XMLImporter allows fields to implement a `prepareImportValue()` function which will preprocess the value from XML before being passed to `processRawFieldData()`. The XML Importer will check for the Field class for the `prepareImportValue()` otherwise it will fall back to rudimentary processing. The `prepareImportValue` function will be passed the value of the XPath and the `entry_id`, and should return a value that your Field's `processRawFieldData` function can accept.
 
+Since XMLImporter 2.1, the `prepareImportValue` function will choose the first mode returned in the `getImportModes` array. It is anticipated that this mode will be the correct mode that will transform the XML value into a format that the field normally expects from either the Symphony backend, or from an event on the frontend. That is, if your field expects a single string value, then the first mode listed in `getImportModes` should be `ImportableField::STRING_VALUE`. If your field expects an array of data to come from the backend/frontend, then the first mode should be `ImportableField::ARRAY_VALUE`
+
 ## Advanced Tips
 
 - The `{$root}` parameter can used in your source URL which will be evaluated at run time to the value of the Symphony constant URL, eg. `{$root}/feed/news/` becomes `http://example.com/feed/news/`

@@ -22,6 +22,12 @@
 		</author>
 	</authors>
 	<releases>
+		<release version="2.1" date="2013-05-27" min="2.3.1">
+			- Added support for the `ImportableField` interface
+			- Added logging for when errors occur
+			- Handle non existent importers better
+			- Update duplicator markup
+		</release>
 		<release version="2.0" date="2012-06-08" min="2.3">
 			- Symphony 2.3 support
 			- Improved localisation support
