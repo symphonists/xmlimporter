@@ -263,7 +263,7 @@
 							$value = $value[0];
 						}
 
-						else {
+						else if (is_array($value)) {
 							$value = implode('', $value);
 						}
 					}
