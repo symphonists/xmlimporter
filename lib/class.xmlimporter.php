@@ -5,7 +5,16 @@
 	require_once(TOOLKIT . '/class.entrymanager.php');
 	require_once(TOOLKIT . '/class.sectionmanager.php');
 
-	require_once(EXTENSIONS . '/xmlimporter/lib/class.xmlimporterhelpers.php');
+	// Attempt to load XMLImporter Helper functions from the workspace rather
+	// than the extension. If that file doesn't exist, then just load what
+	// is provided.
+	// @see https://github.com/symphonists/xmlimporter/issues/16
+	if(@file_exists(WORKSPACE . '/xml-importers/class.xmlimporterhelpers.php') === true) {
+		require_once(WORKSPACE . '/xml-importers/class.xmlimporterhelpers.php');
+	}
+	else if(@file_exists(EXTENSIONS . '/xmlimporter/lib/class.xmlimporterhelpers.php') === true) {
+		require_once(EXTENSIONS . '/xmlimporter/lib/class.xmlimporterhelpers.php');
+	}
 
 	class XMLImporter {
 		const __OK__ = 100;
@@ -220,8 +229,13 @@
 				foreach ($current['values'] as $field_id => $value) {
 					$field = FieldManager::fetch($field_id);
 
-					if(is_array($value) && count($value) === 1) {
-						$value = current($value);
+					if(is_array($value)) {
+						if(count($value) === 1) {
+							$value = current($value);
+						}
+						if(count($value) === 0) {
+							$value = '';
+						}
 					}
 
 					// Adjust value?
@@ -249,7 +263,7 @@
 							$value = $value[0];
 						}
 
-						else {
+						else if (is_array($value)) {
 							$value = implode('', $value);
 						}
 					}
@@ -262,7 +276,7 @@
 					$passed = false;
 				}
 
-				else if (__ENTRY_OK__ != $entry->setDataFromPost($values, $error, true, true)) {
+				else if (__ENTRY_OK__ != $entry->setDataFromPost($values, $current['errors'], true, true)) {
 					$passed = false;
 				}
 
@@ -278,6 +292,8 @@
 		public function commit() {
 			$options = $this->options();
 			$existing = array();
+			$modificationDate = DateTimeObj::get('Y-m-d H:i:s');
+			$modificationDateGmt = DateTimeObj::getGMT('Y-m-d H:i:s');
 
 			$section = SectionManager::fetch($options['section']);
 
@@ -317,6 +333,8 @@
 					if ($options['can-update'] == 'yes') {
 						$entry->set('id', $existing[$index]);
 						$entry->set('importer_status', 'updated');
+						$entry->set('modification_date', $modificationDate);
+						$entry->set('modification_date_gmt', $modificationDateGmt);
 					}
 
 					// Skip

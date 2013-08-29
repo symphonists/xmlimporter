@@ -114,6 +114,8 @@
 			$xim = new XMLImporterManager();
 			$importer = $xim->create($name);
 
+			if($importer === false) return false;
+
 			$data = $importer->options();
 			$data['about'] = $importer->about();
 

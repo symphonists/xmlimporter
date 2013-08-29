@@ -68,7 +68,13 @@
 
 			foreach ($context as $handle) {
 				$importer = $importManager->create($handle);
-				$status = $importer->validate($source);
+				if($importer === false) {
+					Symphony::Log()->writeToLog(__('The XMLImporter %s could not be found.', array($handle)), E_USER_ERROR, true);
+					continue;
+				}
+				else {
+					$status = $importer->validate($source);
+				}
 
 				if ($status == XMLImporter::__OK__) {
 					$importer->commit();
@@ -105,6 +111,11 @@
 			);
 
 			$this->appendSubheading(__('Run XML Importer'), $button);
+
+			if(empty($this->_runs)) {
+				$this->pageAlert(__('The XMLImporter %s could not be found.', array('<code>' . $this->_context[1] . '</code>')), Alert::ERROR);
+				return false;
+			}
 
 			foreach ($this->_runs as $run) {
 				$importer = $run['importer'];
@@ -184,7 +195,12 @@
 						$xml->preserveWhiteSpace = false;
 						$xml->formatOutput = true;
 
-						$xml->loadXML($entry->ownerDocument->saveXML($entry));
+						if(is_null($entry->ownerDocument)) {
+							$xml->loadXML($entry->saveXML());
+						}
+						else {
+							$xml->loadXML($entry->ownerDocument->saveXML($entry));
+						}
 
 						$source = htmlentities($xml->saveXML($xml->documentElement), ENT_COMPAT, 'UTF-8');
 
@@ -497,6 +513,10 @@
 					__('Run XML Importer'),
 					'button'
 				);
+
+				if($this->_fields === false) {
+					$this->pageAlert(__('The XMLImporter %s could not be found.', array('<code>' . $this->_context[1] . '</code>')), Alert::ERROR);
+				}
 			}
 
 			$this->setPageType('form');

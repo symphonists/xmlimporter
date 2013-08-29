@@ -18,4 +18,4 @@
 		}).trigger('change.xmlimporter');
 	});
 
-})(jQuery.noConflict());		
+})(jQuery);
