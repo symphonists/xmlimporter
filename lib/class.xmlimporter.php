@@ -263,7 +263,7 @@
 							$value = $value[0];
 						}
 
-						else {
+						else if (is_array($value)) {
 							$value = implode('', $value);
 						}
 					}
@@ -292,6 +292,8 @@
 		public function commit() {
 			$options = $this->options();
 			$existing = array();
+			$modificationDate = DateTimeObj::get('Y-m-d H:i:s');
+			$modificationDateGmt = DateTimeObj::getGMT('Y-m-d H:i:s');
 
 			$section = SectionManager::fetch($options['section']);
 
@@ -331,6 +333,8 @@
 					if ($options['can-update'] == 'yes') {
 						$entry->set('id', $existing[$index]);
 						$entry->set('importer_status', 'updated');
+						$entry->set('modification_date', $modificationDate);
+						$entry->set('modification_date_gmt', $modificationDateGmt);
 					}
 
 					// Skip

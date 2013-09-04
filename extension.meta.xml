@@ -22,6 +22,10 @@
 		</author>
 	</authors>
 	<releases>
+		<release version="2.1.1" date="2013-09-04" min="2.3.1">
+			- Update modification date on import
+			- Fix string handling
+		</release>
 		<release version="2.1" date="2013-05-27" min="2.3.1">
 			- Added support for the `ImportableField` interface
 			- Added logging for when errors occur
