@@ -22,6 +22,9 @@
 		</author>
 	</authors>
 	<releases>
+		<release version="3.0" min="2.5.0">
+			- work in progress
+		</release>
 		<release version="2.2" date="2014-09-28" min="2.5.0">
 			- Symphony 2.5 support
 			- Fix to allow multiple importers to be selectable on the index again
