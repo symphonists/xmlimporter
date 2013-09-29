@@ -82,6 +82,7 @@
 			$options = $this->options();
 			$passed = true;
 
+			// If $remote, override the source of the XMLImporter with the given $source
 			if ($remote) {
 				if (!is_null($source)) {
 					$options['source'] = $source;
@@ -107,8 +108,26 @@
 				}
 			}
 
-			else if (!is_null($source)) {
-				$data = $source;
+			else if (isset($options['source'])) {
+				$param_pool = array();
+				$ds = DatasourceManager::create($options['source'], $param_pool, true);
+
+				// Not a DataSource (legacy)
+				if(!($ds instanceof Datasource)) {
+					$data = $source;
+				}
+				// DataSource output
+				else {
+					$xml = $ds->execute($param_pool);
+
+					if($xml->getAttribute('valid') == 'false') {
+						$this->_errors[] = __('Failed to retrieve data from source: %s', array($xml->generate()));
+						$passed = false;
+					}
+					else {
+						$data = $xml->generate(true);
+					}
+				}
 			}
 
 			else {

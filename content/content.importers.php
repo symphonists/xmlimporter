@@ -105,9 +105,11 @@
 			$importManager = new XmlImporterManager();
 			$html_errors = ini_get('html_errors');
 			$source = null;
+			$remote = false;
 
 			if (isset($_GET['source'])) {
 				$source = $_GET['source'];
+				$remote = true;
 			}
 
 			array_shift($context);
@@ -121,7 +123,7 @@
 					continue;
 				}
 				else {
-					$status = $importer->validate($source);
+					$status = $importer->validate($source, $remote);
 				}
 
 				if ($_GET['force'] == 'yes') {
@@ -378,56 +380,20 @@
 			else {
 				// Support {$root}
 				$evaluated_source = str_replace('{$root}', URL, $fields['source']);
-				if(!filter_var($evaluated_source, FILTER_VALIDATE_URL)) {
-					$this->_errors['source'] = __('Source is not a valid URL.');
+				$ds = DatasourceManager::create($fields['source'], $param_pool, true);
+
+				// Not a DataSource (legacy)
+				if(!($ds instanceof Datasource)) {
+					if(!filter_var($evaluated_source, FILTER_VALIDATE_URL)) {
+						$this->_errors['source'] = __('Source is not a valid URL.');
+					}
 				}
-			}
-
-		// Namespaces ---------------------------------------------------------
-
-			if (
-				isset($fields['discover-namespaces'])
-				&& $fields['discover-namespaces'] == 'yes'
-				&& !isset($this->_errors['source'])
-			) {
-				$gateway = new Gateway();
-				$gateway->init();
-				$gateway->setopt('URL', $evaluated_source);
-				$gateway->setopt('TIMEOUT', (int)$fields['timeout']);
-				$data = $gateway->exec();
-
-				if ($data === false) {
-					$this->_errors['discover-namespaces'] = __('Error loading data from URL, make sure it is valid and that it returns data within 60 seconds.');
-				}
-
+				// DataSource output
 				else {
-					preg_match_all('/xmlns:([a-z][a-z-0-9\-]*)="([^\"]+)"/i', $data, $matches);
+					$xml = $ds->execute($param_pool);
 
-					if (isset($matches[2][0])) {
-						$namespaces = array();
-
-						if (!is_array($fields['namespaces'])) {
-							$fields['namespaces'] = array();
-						}
-
-						foreach ($fields['namespaces'] as $namespace) {
-							$namespaces[] = $namespace['name'];
-							$namespaces[] = $namespace['uri'];
-						}
-
-						foreach ($matches[2] as $index => $uri) {
-							$name = $matches[1][$index];
-
-							if (in_array($name, $namespaces) or in_array($uri, $namespaces)) continue;
-
-							$namespaces[] = $name;
-							$namespaces[] = $uri;
-
-							$fields['namespaces'][] = array(
-								'name'	=> $name,
-								'uri'	=> $uri
-							);
-						}
+					if($xml->getAttribute('valid') == 'false') {
+						$this->_errors['source'] = __('Failed to retrieve data from source: %s', array($xml->generate()));
 					}
 				}
 			}
@@ -647,15 +613,15 @@
 			$fieldset = new XMLElement('fieldset');
 			$fieldset->setAttribute('class', 'settings');
 			$fieldset->appendChild(new XMLElement('legend', __('Source')));
+			$options = array();
 
-			$label = Widget::Label(__('URL'));
-			$label->appendChild(Widget::Input(
-				'fields[source]', General::sanitize(
-					isset($this->_fields['source'])
-						? $this->_fields['source']
-						: null
-				)
-			));
+			$datasources = DatasourceManager::listAll();
+			foreach($datasources as $index => $ds) {
+				$options[] = array($ds['handle'], $ds['handle'] == $this->_fields['source'], $ds['name']);
+			}
+
+			$label = Widget::Label(__('Data Source'));
+			$label->appendChild(Widget::Select('fields[source]', $options, array('id' => 'ds-context')));
 
 			if (isset($this->_errors['source'])) {
 				$label = Widget::Error($label, $this->_errors['source']);
@@ -665,115 +631,7 @@
 
 			$help = new XMLElement('p');
 			$help->setAttribute('class', 'help');
-			$help->setValue(__('Enter the URL of the XML document you want to process.'));
-			$fieldset->appendChild($help);
-
-			$label = new XMLElement('p', __('Namespace Declarations'));
-			$label->setAttribute('class', 'label');
-			$fieldset->appendChild($label);
-
-		// Namespaces ---------------------------------------------------------
-
-			$nsFrame = new XMLElement('div');
-			$nsFrame->setAttribute('class', 'frame namespaces');
-			$namespaces = new XMLElement('ol');
-			$namespaces->setAttribute('class', 'namespaces-duplicator');
-			$namespaces->setAttribute('data-add', __('Add namespace'));
-			$namespaces->setAttribute('data-remove', __('Remove namespace'));
-
-			if (isset($this->_fields['namespaces']) and is_array($this->_fields['namespaces'])) {
-				foreach ($this->_fields['namespaces'] as $index => $data) {
-					$name = "fields[namespaces][{$index}]";
-
-					$li = new XMLElement('li');
-					$li->appendChild(new XMLElement('header', '<h4>' . __('Namespace') . '</h4>'));
-
-					$group = new XMLElement('div');
-					$group->setAttribute('class', 'two columns');
-
-					$label = Widget::Label(__('Name'));
-					$label->setAttribute('class', 'column');
-					$input = Widget::Input(
-						"{$name}[name]",
-						General::sanitize(
-							isset($data['name'])
-								? $data['name']
-								: null
-						)
-					);
-					$label->appendChild($input);
-					$group->appendChild($label);
-
-					$label = Widget::Label(__('URI'));
-					$label->setAttribute('class', 'column');
-					$input = Widget::Input(
-						"{$name}[uri]",
-						General::sanitize(
-							isset($data['uri'])
-								? $data['uri']
-								: null
-						)
-					);
-					$label->appendChild($input);
-					$group->appendChild($label);
-
-					$li->appendChild($group);
-					$namespaces->appendChild($li);
-				}
-			}
-
-			$name = "fields[namespaces][-1]";
-
-			$li = new XMLElement('li');
-			$li->appendChild(new XMLElement('header', '<h4>' . __('Namespace') . '</h4>'));
-			$li->setAttribute('class', 'template');
-
-			$input = Widget::Input("{$name}[field]", $field_id, 'hidden');
-			$li->appendChild($input);
-
-			$group = new XMLElement('div');
-			$group->setAttribute('class', 'two columns');
-
-			$label = Widget::Label(__('Name'));
-			$label->setAttribute('class', 'column');
-			$input = Widget::Input("{$name}[name]");
-			$label->appendChild($input);
-			$group->appendChild($label);
-
-			$label = Widget::Label(__('URI'));
-			$label->setAttribute('class', 'column');
-			$input = Widget::Input("{$name}[uri]");
-			$label->appendChild($input);
-			$group->appendChild($label);
-
-			$li->appendChild($group);
-			$namespaces->appendChild($li);
-			$nsFrame->appendChild($namespaces);
-
-			$fieldset->appendChild($nsFrame);
-
-		// Discover Namespaces ------------------------------------------------
-
-			$label = Widget::Label();
-			$input = Widget::Input('fields[discover-namespaces]', 'yes', 'checkbox');
-
-			if (!$this->_editing) {
-				$input->setAttribute('checked', 'checked');
-			}
-
-			$label->setValue(__('%s Automatically discover namespaces', array(
-				$input->generate(false)
-			)));
-
-			if (isset($this->_errors['discover-namespaces'])) {
-				$label = Widget::Error($label, $this->_errors['discover-namespaces']);
-			}
-
-			$fieldset->appendChild($label);
-
-			$help = new XMLElement('p');
-			$help->setAttribute('class', 'help');
-			$help->setValue(__('Search the source document for namespaces, any that it finds will be added to the declarations above.'));
+			$help->setValue(__('Choose a DataSource that contains the data you wish to import'));
 			$fieldset->appendChild($help);
 
 		// Included Elements --------------------------------------------------
@@ -1063,7 +921,7 @@
 		public function __prepareIndex() {
 			$this->_table_columns = array(
 				'name'			=> array(__('Name'), true),
-				'url'			=> array(__('URL'), true),
+				'source'		=> array(__('Source'), true),
 				'elements'		=> array(__('Included Elements'), true),
 				'modified'		=> array(__('Modified'), true),
 				'author'		=> array(__('Author'), true)
