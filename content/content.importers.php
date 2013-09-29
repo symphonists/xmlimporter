@@ -151,7 +151,7 @@
 					// Gather statistics:
 					$failed = array();
 
-					foreach ($entries as $index => $current) if (!is_null($current['errors'])) {
+					foreach ($entries as $index => $current) if (!empty($current['errors'])) {
 						$current['position'] = $index + 1;
 						$failed[] = $current;
 					}
