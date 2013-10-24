@@ -255,7 +255,9 @@
 
 						if ($type == 'author') {
 							if ($field->get('allow_multiple_selection') == 'no') {
-								$value = array(implode('', $value));
+								if(is_array($value)){
+								        $value = array(implode('', $value));
+								}
 							}
 						}
 
