@@ -323,11 +323,11 @@
 				$date = DateTimeObj::get('Y-m-d H:i:s');
 				$dateGMT = DateTimeObj::getGMT('Y-m-d H:i:s');
 
-				$exist = !empty($existing[$index]);
+				$exists = !empty($existing[$index]);
 				$skip = ($options['can-update'] !== 'yes');
 
 				// Skip entry
-				if ($exist && $skip) {
+				if ($exists && $skip) {
 					$entry->set('importer_status', 'skipped');
 
 					###
@@ -344,7 +344,7 @@
 				}
 
 				// Edit entry
-				elseif ($exist) {
+				elseif ($exists) {
 					$entry->set('id', $existing[$index]);
 					$entry->set('modification_date', $date);
 					$entry->set('modification_date_gmt', $dateGMT);
