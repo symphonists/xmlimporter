@@ -14,10 +14,5 @@
 			$value = implode('/', array_reverse(explode('/', strtok($string, ' '))));
 			return $value;
 		}
-		
-		static function returnCurrentDate($string) {
-  			$date = date('c');
-  			return $date;
-		}
 	}
 
