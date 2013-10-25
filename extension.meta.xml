@@ -22,6 +22,10 @@
 		</author>
 	</authors>
 	<releases>
+		<release version="2.1.2" date="2013-10-25" min="2.3.1">
+			- Set modification date when creating new entries
+			- Added PostRun, PostRunError and XMLImporterEntryPostSkip delegates
+		</release>
 		<release version="2.1.1" date="2013-09-04" min="2.3.1">
 			- Update modification date on import
 			- Fix string handling
