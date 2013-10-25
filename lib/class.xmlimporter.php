@@ -334,7 +334,7 @@
 					# Delegate: XMLImporterEntryPostSkip
 					# Description: Skipping an entry. Entry object is provided.
 					Symphony::ExtensionManager()->notifyMembers(
-						'XMLImporterEntryPostEdit', '/xmlimporter/importers/run/',
+						'XMLImporterEntryPostSkip', '/xmlimporter/importers/run/',
 						array(
 							'section'	=> $section,
 							'entry'		=> $entry,
