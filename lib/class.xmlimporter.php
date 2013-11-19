@@ -120,6 +120,15 @@
 				else {
 					$xml = $ds->execute($param_pool);
 
+					if(isset($ds->dsParamNAMESPACES)) {
+						foreach($ds->dsParamNAMESPACES as $name => $uri) {
+							$options['namespaces'][] = array(
+								'name' => $name,
+								'uri' => $uri
+							);
+						}
+					}
+
 					if($xml->getAttribute('valid') == 'false') {
 						$this->_errors[] = __('Failed to retrieve data from source: %s', array($xml->generate()));
 						$passed = false;
