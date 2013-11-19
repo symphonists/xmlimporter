@@ -378,8 +378,10 @@
 			}
 
 			else {
-				// Support {$root}
+				// Support {$root} and {$workspace}
 				$evaluated_source = str_replace('{$root}', URL, $fields['source']);
+				$evaluated_source = str_replace('{$workspace}', WORKSPACE, $evaluated_source);
+
 				$ds = DatasourceManager::create($fields['source'], $param_pool, true);
 
 				// Not a DataSource (legacy)
@@ -747,12 +749,14 @@
 						$field_id = $field->get('id');
 						$field_name = "fields[fields][{$index}]";
 						$field_data = null;
+						$template_index = null;
 
 						if (isset($this->_fields['fields'])) {
-							foreach ($this->_fields['fields'] as $temp_data) {
+							foreach ($this->_fields['fields'] as $i => $temp_data) {
 								if ($temp_data['field'] != $field_id) continue;
 
 								$field_data = $temp_data;
+								$template_index = $i;
 							}
 						}
 
@@ -781,8 +785,8 @@
 						);
 						$label->appendChild($input);
 
-						if (isset($this->_errors['fields'][$index])) {
-							$label = Widget::Error($label, $this->_errors['fields'][$index]);
+						if (isset($this->_errors['fields'][$template_index])) {
+							$label = Widget::Error($label, $this->_errors['fields'][$template_index]);
 						}
 
 						$group->appendChild($label);
