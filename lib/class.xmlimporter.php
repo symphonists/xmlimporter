@@ -356,10 +356,10 @@
 					$field->buildDSRetrievalSQL($data, $joins, $where);
 
 					$group = $field->requiresSQLGrouping();
-					$entries = EntryManager::fetch(null, $options['section'], 1, null, $where, $joins, $group, false, null, false);
+					$existing_entries = EntryManager::fetch(null, $options['section'], 1, null, $where, $joins, $group, false, null, false);
 
-					if (is_array($entries) && !empty($entries)) {
-						$existing[$index] = $entries[0]['id'];
+					if (is_array($existing_entries) && !empty($existing_entries)) {
+						$existing[$index] = $existing_entries[0]['id'];
 					}
 
 					else {
