@@ -245,7 +245,7 @@
 			// Validate:
 			$passed = true;
 
-			foreach ($this->_entries as &$current) {
+			foreach ($this->_entries as $index => &$current) {
 				$entry = EntryManager::create();
 				$entry->set('section_id', $options['section']);
 				$entry->set('author_id', is_null(Symphony::Engine()->Author()) ? '1' : Symphony::Engine()->Author()->get('id'));
@@ -303,12 +303,20 @@
 				}
 
 				// Validate:
-				if (__ENTRY_FIELD_ERROR__ == $entry->checkPostData($values, $current['errors'])) {
-					$passed = false;
-				}
+				try {
+					if (__ENTRY_FIELD_ERROR__ == $entry->checkPostData($values, $current['errors'])) {
+						$passed = false;
+					}
 
-				else if (__ENTRY_OK__ != $entry->setDataFromPost($values, $current['errors'], true, true)) {
+					else if (__ENTRY_OK__ != $entry->setDataFromPost($values, $current['errors'], true, true)) {
+						$passed = false;
+					}
+				}
+				catch (Exception $ex) {
 					$passed = false;
+					$current['errors'] = array($ex->getMessage());
+
+					Symphony::Log()->pushToLog(sprintf('XMLImporter: Failed to set values for entry in position %d, %s', $index, $ex->getMessage()), E_NOTICE, true);
 				}
 
 				$current['entry'] = $entry;

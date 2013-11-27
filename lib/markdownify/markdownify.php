@@ -321,13 +321,13 @@ class Markdownify {
           }
           break;
         default:
-          trigger_error('invalid node type', E_USER_ERROR);
+          //trigger_error('invalid node type', E_USER_ERROR);
           break;
       }
       $this->lastWasBlockTag = $this->parser->nodeType == 'tag' && $this->parser->isStartTag && $this->parser->isBlockElement;
     }
     if (!empty($this->buffer)) {
-      trigger_error('buffer was not flushed, this is a bug. please report!', E_USER_WARNING);
+      //trigger_error('buffer was not flushed, this is a bug. please report!', E_USER_WARNING);
       while (!empty($this->buffer)) {
         $this->out($this->unbuffer());
       }
@@ -932,7 +932,7 @@ class Markdownify {
    */
   function unstack() {
     if (!isset($this->stack[$this->parser->tagName]) || !is_array($this->stack[$this->parser->tagName])) {
-      trigger_error('Trying to unstack from empty stack. This must not happen.', E_USER_ERROR);
+      //trigger_error('Trying to unstack from empty stack. This must not happen.', E_USER_ERROR);
     }
     return array_pop($this->stack[$this->parser->tagName]);
   }
