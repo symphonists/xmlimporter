@@ -2,9 +2,9 @@
 
 	$(document).ready(function() {
 		var sections = $('select[name="fields[section]"]'),
-			fields = $('div.section-fields'),
+			fields = $('div.frame.section-fields'),
 			label = sections.parents('fieldset').find('p.label'),
-			namespaces = $('ol.namespaces-duplicator');
+			namespaces = $('div.frame.namespaces');
 
 		// Initialise Duplicators
 		namespaces.add(fields).symphonyDuplicator({
