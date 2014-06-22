@@ -509,7 +509,7 @@
 			$data = $entry->getData($field->get('id'));
 			$where = $joins = $group = null;
 
-			$field->buildDSRetrivalSQL($data, $joins, $where);
+			$field->buildDSRetrievalSQL($data, $joins, $where);
 
 			$group = $field->requiresSQLGrouping();
 			$existing_entries = EntryManager::fetch(null, $field->get('parent_section'), 1, null, $where, $joins, $group, false, null, false);
