@@ -198,9 +198,9 @@
 
 				// Options:
 				var_export($new['can-update'], true),
-				var_export($new['fields'], true),
+				$this->layoutVar($new['fields']),
 				var_export($new['included-elements'], true),
-				var_export($new['namespaces'], true),
+				$this->layoutVar($new['namespaces'], true),
 				var_export($new['source'], true),
 				var_export($new['timeout'], true),
 				var_export($new['section'], true),
@@ -219,6 +219,17 @@
 			}
 
 			return true;
+		}
+
+		private function layoutVar($variable) {
+			$result = var_export($variable, true);
+			$result = str_replace("  ", "    ", $result);
+			$result = str_replace("array (", "array(", $result);
+			$result = str_replace(" => " . PHP_EOL . "    ", " => ", $result);
+			$result = str_replace("," . PHP_EOL . "    ),", PHP_EOL . "    ),", $result);
+			$result = str_replace(PHP_EOL, PHP_EOL . "            ", $result);
+
+			return $result;
 		}
 
 		public function validateXPath($expression, $namespaces = array()) {
