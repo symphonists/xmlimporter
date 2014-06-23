@@ -1091,9 +1091,17 @@
 				));
 
 				if (!empty($importer['source'])) {
-					$col_url = Widget::TableData(
-						General::sanitize($importer['source'])
-					);
+					$handle = General::sanitize($importer['source']);
+					$datasources = DatasourceManager::listAll();
+					
+					if(!empty($datasources[$handle]['name'])) {
+						$source = $datasources[$handle]['name'];
+					}
+					else {
+						$source = $handle;
+					}
+
+					$col_url = Widget::TableData($source);
 				}
 
 				else {
