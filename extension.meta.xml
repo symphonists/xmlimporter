@@ -20,10 +20,14 @@
 		<author>
 			<name github="brendo" symphony="brendo">Brendan Abbott</name>
 		</author>
+		<author>
+			<name github="hananils" symphony="hananils">Büro für Web- und Textgestaltung</name>
+			<website>http://hananils.de</website>
+		</author>
 	</authors>
 	<releases>
-		<release version="3.0" min="2.5.0">
-			- work in progress
+		<release version="3.0.0" min="2.5.0">
+			- Switched from custom data fetching to Data Sources
 		</release>
 		<release version="2.2" date="2014-09-28" min="2.5.0">
 			- Symphony 2.5 support
@@ -42,13 +46,13 @@
 			- Update modification date on import
 			- Fix string handling
 		</release>
-		<release version="2.1" date="2013-05-27" min="2.3.1">
+		<release version="2.1.0" date="2013-05-27" min="2.3.1">
 			- Added support for the `ImportableField` interface
 			- Added logging for when errors occur
 			- Handle non existent importers better
 			- Update duplicator markup
 		</release>
-		<release version="2.0" date="2012-06-08" min="2.3">
+		<release version="2.0.0" date="2012-06-08" min="2.3">
 			- Symphony 2.3 support
 			- Improved localisation support
 			- Ability to use `{$root}` in the URL
