@@ -648,13 +648,16 @@
 		// Included Elements --------------------------------------------------
 
 			$label = Widget::Label(__('Included Elements'));
-			$label->appendChild(Widget::Input(
-				'fields[included-elements]', General::sanitize(
+			$input = Widget::Input(
+				'fields[included-elements]', 
+				General::sanitize(
 					isset($this->_fields['included-elements'])
 						? $this->_fields['included-elements']
 						: null
 				)
-			));
+			);
+			$input->setAttribute('placeholder', '/data');
+			$label->appendChild($input);
 
 			if (isset($this->_errors['included-elements'])) {
 				$label = Widget::Error($label, $this->_errors['included-elements']);
