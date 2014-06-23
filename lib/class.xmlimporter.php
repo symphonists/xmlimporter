@@ -134,7 +134,7 @@
 						$passed = false;
 					}
 					else {
-						$data = $xml->generate(true);
+						$data = '<data>' . $xml->generate(true) . '</data>';
 					}
 				}
 			}
