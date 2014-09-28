@@ -402,52 +402,21 @@
 					// Skip
 					else {
 						$entry->set('importer_status', 'skipped');
+
+						###
+						# Delegate: XMLImporterEntryPostSkip
+						# Description: Skipping an entry. Entry object is provided.
+						Symphony::ExtensionManager()->notifyMembers(
+							'XMLImporterEntryPostSkip', '/xmlimporter/importers/run/',
+							array(
+								'section'	=> $section,
+								'entry'		=> $entry,
+								'fields'	=> $values
+							)
+						);
+
 						continue;
 					}
-
-					###
-					# Delegate: XMLImporterEntryPostSkip
-					# Description: Skipping an entry. Entry object is provided.
-					Symphony::ExtensionManager()->notifyMembers(
-						'XMLImporterEntryPostSkip', '/xmlimporter/importers/run/',
-						array(
-							'section'	=> $section,
-							'entry'		=> $entry,
-							'fields'	=> $values
-						)
-					);
-
-				// Create a new entry
-				else {
-					$entry->set('creation_date_gmt', DateTimeObj::getGMT('Y-m-d H:i:s'));
-					$entry->set('creation_date', DateTimeObj::get('Y-m-d H:i:s'));
-
-					###
-					# Delegate: XMLImporterEntryPreEdit
-					# Description: Just prior to editing of an Entry.
-					Symphony::ExtensionManager()->notifyMembers(
-						'XMLImporterEntryPreEdit', '/xmlimporter/importers/run/',
-						array(
-							'section'	=> $section,
-							'fields'	=> &$values,
-							'entry'		=> &$entry
-						)
-					);
-
-					EntryManager::edit($entry);
-					$entry->set('importer_status', 'updated');
-
-					###
-					# Delegate: XMLImporterEntryPostEdit
-					# Description: Editing an entry. Entry object is provided.
-					Symphony::ExtensionManager()->notifyMembers(
-						'XMLImporterEntryPostEdit', '/xmlimporter/importers/run/',
-						array(
-							'section'	=> $section,
-							'entry'		=> $entry,
-							'fields'	=> $values
-						)
-					);
 				}
 
 				// Create entry

@@ -232,17 +232,17 @@
 					));
 
 					$this->addFailedEntries($fieldset, $failed);
+					
+					###
+					# Delegate: XMLImporterImportPostRunErrors
+					# Description: Notify Delegate for Errors
+					Symphony::ExtensionManager()->notifyMembers(
+						'XMLImporterImportPostRunErrors', '/xmlimporter/importers/run/',
+						array(
+							$current['errors']
+						)
+					);
 				}
-
-				###
-				# Delegate: XMLImporterImportPostRunErrors
-				# Description: Notify Delegate for Errors
-				Symphony::ExtensionManager()->notifyMembers(
-					'XMLImporterImportPostRunErrors', '/xmlimporter/importers/run/',
-					array(
-						$current['errors']
-					)
-				);
 
 				// Invalid entry:
 				else if ($status == XMLImporter::__PARTIAL_OK__) {
