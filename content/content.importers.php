@@ -176,7 +176,7 @@
 						}
 
 						$fieldset->appendChild($list);
-						
+
 						###
 						# Delegate: XMLImporterImportPostRunErrors
 						# Description: Notify Delegate for Errors
@@ -186,7 +186,7 @@
 								$current['errors']
 							)
 						);
-						
+
 
 					// Source -------------------------------------------------
 
@@ -244,11 +244,11 @@
 							$importer_result['skipped']
 						))
 					));
-					
+
 				}
 
 				$this->Form->appendChild($fieldset);
-				
+
 				###
 				# Delegate: XMLImporterImportPostRun
 				# Description: All Importers run successfully
@@ -610,6 +610,8 @@
 
 		// Namespaces ---------------------------------------------------------
 
+			$nsFrame = new XMLElement('div');
+			$nsFrame->setAttribute('class', 'frame namespaces');
 			$namespaces = new XMLElement('ol');
 			$namespaces->setAttribute('class', 'namespaces-duplicator');
 			$namespaces->setAttribute('data-add', __('Add namespace'));
@@ -682,8 +684,9 @@
 
 			$li->appendChild($group);
 			$namespaces->appendChild($li);
+			$nsFrame->appendChild($namespaces);
 
-			$fieldset->appendChild($namespaces);
+			$fieldset->appendChild($nsFrame);
 
 		// Discover Namespaces ------------------------------------------------
 
