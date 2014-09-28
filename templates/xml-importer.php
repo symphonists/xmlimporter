@@ -14,7 +14,8 @@ class XMLImporter%s extends XMLImporter {
             'description' => %s,
             'file' => __FILE__,
             'created' => %s,
-            'updated' => %s
+            'updated' => %s,
+            'version' => 'XML Importer 3.0'
         );
     }
 
