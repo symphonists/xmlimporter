@@ -3,7 +3,7 @@
 	<name>XML Importer</name>
 	<description>From XML to entries in an instant</description>
 	<repo type="github">https://github.com/symphonists/xmlimporter</repo>
-	<url type="discuss">http://symphony-cms.com/discuss/thread/36868/</url>
+	<url type="discuss">http://getsymphony.com/discuss/thread/36868/</url>
 	<types>
 		<type>Other</type>
 		<type>Workflow</type>
@@ -22,7 +22,12 @@
 		</author>
 	</authors>
 	<releases>
-		<release version="2.1.2" date="2013-10-25" min="2.3.1">
+		<release version="2.1.3" date="2014-09-28" min="2.4" max="2.4">
+			- XML Importer now uses Field->buildDSRetrievalSQL instead of the typo'd function call.
+			- Updates for duplicator HTML
+			- Update README to point at getsymphony.com domain.
+		</release>
+		<release version="2.1.2" date="2013-10-25" min="2.3.1" max="2.3.6">
 			- Set modification date when creating new entries
 			- Added PostRun, PostRunError and XMLImporterEntryPostSkip delegates
 		</release>
