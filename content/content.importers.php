@@ -975,7 +975,7 @@
 			$values = array_merge(array(
 				'pg'	=> $this->_pagination->page,
 				'sort'	=> $this->_table_column,
-				'order'	=> $this->_table_direction
+				'order' => $this->_table_direction
 			), $values);
 
 			$count = 0;
@@ -1108,7 +1108,7 @@
 
 					$link = $this->generateLink(array(
 						'sort'	=> $column,
-						'order'	=> $direction
+						'order' => $direction
 					));
 
 					$anchor = Widget::Anchor(
@@ -1197,10 +1197,13 @@
 			}
 
 			$table = Widget::Table(
-				Widget::TableHead($tableHead), null,
-				Widget::TableBody($tableBody)
+				Widget::TableHead($tableHead),
+				null,
+				Widget::TableBody($tableBody),
+				'selectable',
+				null,
+				array('role' => 'directory', 'aria-labelledby' => 'symphony-subheading', 'data-interactive' => 'data-interactive')
 			);
-			$table->setAttribute('class', 'selectable');
 
 			$this->Form->appendChild($table);
 
