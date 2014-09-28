@@ -129,8 +129,8 @@
 			// Update author:
 			if (!isset($new['about']['author'])) {
 				$new['about']['author'] = array(
-					'name'		=> Symphony::Engine()->Author->getFullName(),
-					'email'		=> Symphony::Engine()->Author->get('email')
+					'name'		=> Symphony::Engine()->Author()->getFullName(),
+					'email'		=> Symphony::Engine()->Author()->get('email')
 				);
 			}
 

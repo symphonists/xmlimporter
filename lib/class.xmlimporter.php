@@ -219,7 +219,7 @@
 			foreach ($this->_entries as &$current) {
 				$entry = EntryManager::create();
 				$entry->set('section_id', $options['section']);
-				$entry->set('author_id', is_null(Symphony::Engine()->Author) ? '1' : Symphony::Engine()->Author->get('id'));
+				$entry->set('author_id', is_null(Symphony::Engine()->Author()) ? '1' : Symphony::Engine()->Author()->get('id'));
 
 				$values = array();
 
