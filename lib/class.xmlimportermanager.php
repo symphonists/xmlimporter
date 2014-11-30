@@ -66,7 +66,8 @@
 			$handle = $this->__getHandleFromFilename(basename($path));
 
 			if(is_callable(array($classname, 'about'))){
-				$about = call_user_func(array($classname, 'about'));
+				$importer = new $classname;
+				$about = $importer->about();
 				return array_merge($about, array('handle' => $handle));
 			}
 

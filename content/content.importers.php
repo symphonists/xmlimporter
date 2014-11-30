@@ -31,7 +31,7 @@
 			$this->_driver = Symphony::ExtensionManager()->create('xmlimporter');
 		}
 
-		public function build($context) {
+		public function build(array $context = array()) {
 			if (isset($context[0])) {
 				if ($context[0] == 'edit' || $context[0] == 'new') {
 					$this->__prepareEdit($context);
