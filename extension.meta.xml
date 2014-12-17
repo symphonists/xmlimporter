@@ -27,20 +27,22 @@
 	</authors>
 	<releases>
 		<release version="3.0.0" min="2.5.0">
-			- Switched from custom data fetching to Data Sources
+			- Switched from custom data fetching to using Data Sources
+			- Allow partial import of successful entries
+			- Improve error handling and messaging
 		</release>
 		<release version="2.2" date="2014-09-28" min="2.5.0">
 			- Symphony 2.5 support
 			- Fix to allow multiple importers to be selectable on the index again
 		</release>
 		<release version="2.1.3" date="2014-09-28" min="2.4" max="2.4">
-			- XML Importer now uses Field->buildDSRetrievalSQL instead of the typo'd function call.
+			- XML Importer now uses `Field->buildDSRetrievalSQL` instead of the typo'd function call.
 			- Updates for duplicator HTML
 			- Update README to point at getsymphony.com domain.
 		</release>
 		<release version="2.1.2" date="2013-10-25" min="2.3.1" max="2.3.6">
 			- Set modification date when creating new entries
-			- Added PostRun, PostRunError and XMLImporterEntryPostSkip delegates
+			- Added `PostRun`, `PostRunError` and `XMLImporterEntryPostSkip` delegates
 		</release>
 		<release version="2.1.1" date="2013-09-04" min="2.3.1">
 			- Update modification date on import

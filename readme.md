@@ -2,12 +2,16 @@
 
 XML Importer is a way of creating repeatable templates to import data from XML feeds directly into Symphony sections. It provides a way of mapping content from XML nodes directly onto fields in your sections, and the ability to both create new and update existing entries.
 
+### Note
+
+XML Importer 3.0 is a drastic change from previous XML Importer versions in that the retrieval of data is abstracted to using Data Sources. Old XML Importer files can still be used in this version, but they can not be edited. It is highly recommended to migrate to using a Data Source as this legacy behaviour will be removed in Version 4.
+
 ## Sources
 
 As of version 3, XML Importer uses Data Sources to import data:
 
-- If you'd like to import external data, please have a look at [Remote Data Source]() which accepts XML, JSON or CSV sources.
-- If you'd like to alter existing data, you can make use of standard section Data Sources.
+- If you'd like to import external data, please have a look at [Remote Data Source](https://github.com/symphonycms/remote_datasource) which accepts XML, JSON or CSV sources.
+- If you'd like to alter existing data, you can make use of standard Data Sources
 
 If you want to use the same importer for different input sources, you can modify the URL of the run:
 
