@@ -23,8 +23,9 @@
 		const __ERROR_VALIDATING__ = 210;
 		const __ERROR_CREATING__ = 220;
 
-		public $_entries = array();
-		public $_errors = array();
+		protected $_entries = array();
+		protected $_errors = array();
+		public $context = array();
 
 		public function about() {
 			return array();
@@ -40,6 +41,11 @@
 
 		public function getErrors() {
 			return $this->_errors;
+		}
+
+		public function setContext(array $context)
+		{
+			$this->context = $context;
 		}
 
 		protected function getExpressionValue($xml, $entry, $xpath, $expression) {
@@ -109,8 +115,7 @@
 			}
 
 			else if (isset($options['source'])) {
-				$param_pool = array();
-				$ds = DatasourceManager::create($options['source'], $param_pool, true);
+				$ds = DatasourceManager::create($options['source'], $this->context, true);
 
 				// Not a DataSource (legacy)
 				if(!($ds instanceof Datasource)) {
@@ -464,15 +469,15 @@
 		 * to the `$existing` array.
 		 *
 		 * @param Field $field
-		 *  The unique field
+		 *	The unique field
 		 * @param Entry $entry
-		 *  The current entry that is about to be imported
+		 *	The current entry that is about to be imported
 		 * @param integer $index
-		 *  The current position of the Entry in the import
+		 *	The current position of the Entry in the import
 		 * @param array $existing
-		 *  An associative array, by reference. The key is the position of
-		 *  the entry in the import, and the value is the `entry_id` if
-		 *  a match was found, otherwise null.
+		 *	An associative array, by reference. The key is the position of
+		 *	the entry in the import, and the value is the `entry_id` if
+		 *	a match was found, otherwise null.
 		 */
 		private function checkExisting(Field $field, Entry $entry, $index, array &$existing) {
 			$data = $entry->getData($field->get('id'));

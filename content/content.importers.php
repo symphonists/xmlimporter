@@ -2,6 +2,7 @@
 
 	require_once(TOOLKIT . '/class.gateway.php');
 	require_once(TOOLKIT . '/class.administrationpage.php');
+	require_once(TOOLKIT . '/class.frontendpage.php');
 	require_once(TOOLKIT . '/class.sectionmanager.php');
 
 	require_once(EXTENSIONS . '/xmlimporter/lib/class.xmlimporter.php');
@@ -118,6 +119,8 @@
 
 			foreach ($context as $handle) {
 				$importer = $importManager->create($handle);
+				$importer->setContext($this->getContext());
+
 				if($importer === false) {
 					Symphony::Log()->writeToLog(__('The XMLImporter %s could not be found.', array($handle)), E_USER_ERROR, true);
 					continue;
@@ -232,7 +235,7 @@
 					));
 
 					$this->addFailedEntries($fieldset, $failed);
-					
+
 					###
 					# Delegate: XMLImporterImportPostRunErrors
 					# Description: Notify Delegate for Errors
@@ -649,7 +652,7 @@
 
 			$label = Widget::Label(__('Included Elements'));
 			$input = Widget::Input(
-				'fields[included-elements]', 
+				'fields[included-elements]',
 				General::sanitize(
 					isset($this->_fields['included-elements'])
 						? $this->_fields['included-elements']
@@ -1101,7 +1104,7 @@
 				if (!empty($importer['source'])) {
 					$handle = General::sanitize($importer['source']);
 					$datasources = DatasourceManager::listAll();
-					
+
 					if(!empty($datasources[$handle]['name'])) {
 						$source = $datasources[$handle]['name'];
 					}
@@ -1248,5 +1251,53 @@
 				$ul->appendChild($li);
 				$this->Form->appendChild($ul);
 			}
+		}
+
+		/**
+		 * Given the REQUEST, parse out all the rubbish and emulate what the Frontend
+		 * would do. This ensures any datasources that rely on URL parameters can continue
+		 * to use them.
+		 *
+		 * @return array
+		 */
+		public function getContext()
+		{
+			$context = array();
+
+			if (isset($_REQUEST) && is_array($_REQUEST)) {
+				foreach ($_REQUEST as $key => $val) {
+					if (in_array($key, array('symphony-page', 'mode'))) {
+						continue;
+					}
+
+					// If the browser sends encoded entities for &, ie. a=1&amp;b=2
+					// this causes the $_GET to output they key as amp;b, which results in
+					// $url-amp;b. This pattern will remove amp; allow the correct param
+					// to be used, $url-b
+					$key = preg_replace('/(^amp;|\/)/', null, $key);
+
+					// If the key gets replaced out then it will break the XML so prevent
+					// the parameter being set.
+					$key = General::createHandle($key);
+					if (!$key) {
+						continue;
+					}
+
+					// Handle ?foo[bar]=hi as well as straight ?foo=hi RE: #1348
+					if (is_array($val)) {
+						$val = General::array_map_recursive(array('FrontendPage', 'sanitizeParameter'), $val);
+					} else {
+						$val = FrontendPage::sanitizeParameter($val);
+					}
+
+					$context['url-' . $key] = $val;
+				}
+			}
+
+			return array(
+				'env' => array(
+					'url' => $context
+				)
+			);
 		}
 	}
