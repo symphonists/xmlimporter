@@ -184,6 +184,14 @@
 				$fieldset->setAttribute('class', 'settings xml-importer-run');
 				$fieldset->appendChild(new XMLElement('legend', $about['name']));
 
+				$failed = array();
+				$importer_result = array(
+					'created' => 0,
+					'updated' => 0,
+					'skipped' => 0,
+					'failed'  => 0
+				);
+
 				// Markup invalid:
 				if ($status == XMLImporter::__ERROR_PREPARING__) {
 					$fieldset->appendChild(new XMLElement(
@@ -206,8 +214,6 @@
 					));
 
 					// Gather statistics:
-					$failed = array();
-
 					foreach ($entries as $index => $current) if (!empty($current['errors'])) {
 						$current['position'] = $index + 1;
 						$failed[] = $current;
@@ -242,7 +248,7 @@
 					Symphony::ExtensionManager()->notifyMembers(
 						'XMLImporterImportPostRunErrors', '/xmlimporter/importers/run/',
 						array(
-							$current['errors']
+							'errors' => $current['errors']
 						)
 					);
 				}
@@ -254,14 +260,6 @@
 					));
 
 					// Gather statistics:
-					$failed = array();
-					$importer_result = array(
-						'created' => 0,
-						'updated' => 0,
-						'skipped' => 0,
-						'failed'  => 0
-					);
-
 					foreach ($entries as $index => $current) {
 						if (!empty($current['errors'])) {
 							$current['position'] = $index + 1;
@@ -295,12 +293,6 @@
 						'h3', __('Import Complete')
 					));
 
-					$importer_result = array(
-						'created' => 0,
-						'updated' => 0,
-						'skipped' => 0
-					);
-
 					foreach ($entries as $entry) {
 						$importer_result[$entry['entry']->get('importer_status')]++;
 					}
@@ -324,9 +316,11 @@
 				Symphony::ExtensionManager()->notifyMembers(
 					'XMLImporterImportPostRun', '/xmlimporter/importers/run/',
 					array(
-						$importer_result['created'],
-						$importer_result['updated'],
-						$importer_result['skipped']
+						'created' => $importer_result['created'],
+						'updated' => $importer_result['updated'],
+						'skipped' => $importer_result['skipped'],
+						'failed'  => $importer_result['failed'],
+						'entries' => $entries
 					)
 				);
 			}
