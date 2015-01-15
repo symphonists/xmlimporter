@@ -251,16 +251,48 @@
 			$passed = true;
 
 			foreach ($this->_entries as $index => &$current) {
+
 				$entry = EntryManager::create();
 				$entry->set('section_id', $options['section']);
 				$entry->set('author_id', is_null(Symphony::Engine()->Author()) ? '1' : Symphony::Engine()->Author()->get('id'));
 				$entry->set('modification_date_gmt', DateTimeObj::getGMT('Y-m-d H:i:s'));
 				$entry->set('modification_date', DateTimeObj::get('Y-m-d H:i:s'));
 
+				//if it has a pre-set entry id use it
+				if(isset($current['values']['entry-id'])){
+					$entry_id = $current['values']['entry-id'];
+					if (is_array($entry_id)){
+						$entry_id = current($entry_id);
+					}
+
+					//entry has an id - should check if it's a new entry
+					$existingEntry = EntryManager::fetch($entry_id, null, null, null,  null,  null, false, false);
+					if (!empty($existingEntry)){
+						$existingEntry = current($existingEntry);
+						//check that entry is in the same section else there is something wrong
+						if ($entry->get('section_id') != $existingEntry['section_id']){
+							$errorMessage = sprintf(__("An entry with id: %d already exists in a the '%s' Section, and you're trying to import it into the '%s' Section."),
+									$existingEntry['id'],
+									SectionManager::fetch($existingEntry['section_id'])->get('name'),
+									SectionManager::fetch($entry->get('section_id'))->get('name')
+								);
+							$current['errors'] = array($errorMessage);
+							$passed = false;
+						}
+					}
+
+					//set the entry id to continue
+					$entry->set('id', $entry_id);
+				}
+
 				$values = array();
 
 				// Map values:
 				foreach ($current['values'] as $field_id => $value) {
+					if ($field_id == "entry-id"){
+						continue;
+					}
+
 					$field = FieldManager::fetch($field_id);
 
 					if(is_array($value)) {
@@ -367,6 +399,16 @@
 				if(!empty($field)) {
 					$this->checkExisting($field, $entry, $index, $existing);
 				};
+
+				//this entry has an entry id - ignore any existing field previously set and re-set according to this id
+				if ($entry->get('id')){
+					//entry has an id - should check if it's a new entry
+					$existingEntry = EntryManager::fetch($entry->get('id'), null, null, null,  null,  null, false, false);
+					if (!empty($existingEntry)){
+						$existingEntry = current($existingEntry);
+						$existing[$index] = $existingEntry['id'];
+					}
+				}
 
 				// Matches an existing entry
 				if (!is_null($existing[$index])) {
