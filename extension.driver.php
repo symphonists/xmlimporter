@@ -118,6 +118,7 @@
 
 			$data = $importer->options();
 			$data['about'] = $importer->about();
+			$data['pagination'] = $importer->pagination();
 
 			return $data;
 		}
@@ -204,7 +205,12 @@
 				var_export($new['source'], true),
 				var_export($new['timeout'], true),
 				var_export($new['section'], true),
-				var_export($new['unique-field'], true)
+				var_export($new['unique-field'], true),
+
+				// pagination
+				var_export($new['pagination']['variable'], true),
+				var_export($new['pagination']['start'], true),
+				var_export($new['pagination']['next'], true)
 			);
 
 			// Write file to disk:

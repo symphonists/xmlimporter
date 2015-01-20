@@ -25,6 +25,7 @@
 
 		protected $_entries = array();
 		protected $_errors = array();
+		protected $_throttle = array();
 		public $context = array();
 
 		public function about() {
@@ -33,6 +34,14 @@
 
 		public function options() {
 			return array();
+		}
+
+		public function pagination() {
+			return array();
+		}
+
+		public function getThrottle() {
+			return $this->_throttle;
 		}
 
 		public function getEntries() {
@@ -86,6 +95,7 @@
 
 			$self = $this; // Fucking PHP...
 			$options = $this->options();
+			$pagination = $this->pagination();
 			$passed = true;
 
 			// If $remote, override the source of the XMLImporter with the given $source
@@ -169,6 +179,27 @@
 			if (is_array($options['namespaces'])) {
 				foreach ($options['namespaces'] as $namespace) {
 					$xpath->registerNamespace($namespace['name'], $namespace['uri']);
+				}
+			}
+
+			//pagination
+			if (isset($pagination['variable'])){
+				// $next = $xpath->query($pagination['next']);
+				$next = $xpath->evaluate('boolean(' . $pagination['next'] . ')');
+
+				$currentPage = intval($pagination['start']);
+				if (isset($this->context['env']['url']['url-' . $pagination['variable']])){
+					$currentPage = intval($this->context['env']['url']['url-' . $pagination['variable']]);
+				}
+				
+				$this->_throttle['current-page'] = $currentPage;
+
+				if ($next){
+					$this->_throttle['next-page'] = $currentPage + 1;
+				}
+
+				if (isset($this->context['env']['url']['url-ajax'])){
+					$this->_throttle['ajax'] = true;
 				}
 			}
 
