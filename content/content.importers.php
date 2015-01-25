@@ -525,7 +525,7 @@
 			// pagination/throttling settings
 
 			// validate has next page xpath
-			if (isset($fields['pagination']['next'])){
+			if (!empty($fields['pagination']['next'])){
 				try {
 					$this->_driver->validateXPath($fields['pagination']['next'], $fields['namespaces']);
 				}

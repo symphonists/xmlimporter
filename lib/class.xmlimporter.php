@@ -183,7 +183,7 @@
 			}
 
 			//pagination
-			if (isset($pagination['variable'])){
+			if (!empty($pagination['variable'])){
 				// $next = $xpath->query($pagination['next']);
 				$next = $xpath->evaluate('boolean(' . $pagination['next'] . ')');
 
