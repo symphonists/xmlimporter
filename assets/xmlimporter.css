@@ -5,3 +5,11 @@
 .xml-importer-run ol li {
 	list-style: decimal;
 }
+
+.xml-importer-preview {
+	height: 15rem;
+	font: 1.1rem/1.5 Monaco,Consolas,'Andale Mono',monospace;
+	white-space: pre;
+	-moz-tab-size: 4;
+	tab-size: 4;
+}

@@ -621,7 +621,14 @@
 			$fieldset = new XMLElement('fieldset');
 			$fieldset->setAttribute('class', 'settings');
 			$fieldset->appendChild(new XMLElement('legend', __('Source')));
+
+			$help = new XMLElement('p');
+			$help->setAttribute('class', 'help');
+			$help->setValue(__('Choose a DataSource that contains the data you wish to import. Use an XPath expression to select which elements from the source XML to include.'));
+			$fieldset->appendChild($help);
+
 			$options = array();
+			$options[] = array();
 
 			$datasources = DatasourceManager::listAll();
 			foreach($datasources as $index => $ds) {
@@ -637,10 +644,12 @@
 
 			$fieldset->appendChild($label);
 
-			$help = new XMLElement('p');
-			$help->setAttribute('class', 'help');
-			$help->setValue(__('Choose a DataSource that contains the data you wish to import'));
-			$fieldset->appendChild($help);
+			$label = Widget::Label(__('Preview'));
+			$label->appendChild(Widget::Textarea('preview', 10, 15, "<data>\n\t<error>" . __('No DataSource selected.') . "</error>\n</data>", array(
+				'readonly' => 'readonly',
+				'class' => 'xml-importer-preview'
+			)));
+			$fieldset->appendChild($label);
 
 		// Included Elements --------------------------------------------------
 
@@ -661,12 +670,6 @@
 			}
 
 			$fieldset->appendChild($label);
-
-			$help = new XMLElement('p');
-			$help->setAttribute('class', 'help');
-			$help->setValue(__('Use an XPath expression to select which elements from the source XML to include.'));
-			$fieldset->appendChild($help);
-
 			$this->Form->appendChild($fieldset);
 
 		// Section ------------------------------------------------------------
