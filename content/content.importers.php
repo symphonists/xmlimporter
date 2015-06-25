@@ -276,7 +276,13 @@
 							$importer_result['updated'],
 							$importer_result['skipped'],
 							$importer_result['failed']
-						))
+						)), array(
+							'data-created' => $importer_result['created'],
+							'data-updated' => $importer_result['updated'],
+							'data-skipped' => $importer_result['skipped'],
+							'data-failed' => $importer_result['failed'],
+							'class' => 'xmlimport-details',
+						)
 					));
 
 					// Import errors
@@ -303,8 +309,34 @@
 							$importer_result['created'],
 							$importer_result['updated'],
 							$importer_result['skipped']
-						))
+						)), array(
+							'data-created' => $importer_result['created'],
+							'data-updated' => $importer_result['updated'],
+							'data-skipped' => $importer_result['skipped'],
+							'data-failed' => $importer_result['failed'],
+							'class' => 'xmlimport-details',
+						)
 					));
+
+					$throttle = $importer->getThrottle();
+					$pagination = $importer->pagination();
+					if ( !empty($throttle)){
+						$fieldset->appendChild(Widget::Anchor(
+							__('Next Page'),
+							$this->_uri . '/importers/run/' . $this->_context[1] . '/?' . $pagination['variable'] . '=' . $throttle['next-page'],
+							__('Next Page'),
+							'button next-page',null,array(
+								'data-next'=>$throttle['next-page'],
+								'data-uri' => $this->_uri . '/importers/run/' . $this->_context[1] . '/?' . $pagination['variable'] . '=' . $throttle['next-page']
+							)
+						));
+						$fieldset->appendChild(Widget::Anchor(
+							__('Throttle'),
+							'#throttle',
+							__('Throttle'),
+							'button throttle'
+						));
+					}
 
 				}
 
@@ -323,6 +355,37 @@
 						'entries' => $entries
 					)
 				);
+
+				$throttle = $importer->getThrottle();
+				$pagination = $importer->pagination();
+				if ($throttle['ajax']){
+
+					$failedEntries = new XMLElement(
+						'div', null, array('class'=>'failed-entries')
+					);
+
+					if (!empty($failed)){
+						$fieldset->appendChild(new XMLElement(
+							'h3', __('Import Errors: Page %d', array( 
+									$throttle['current-page']
+								))
+						));
+
+						$this->addFailedEntries($failedEntries, $failed);
+					}
+
+					echo json_encode( array(
+						'created' => $importer_result['created'],
+						'updated' => $importer_result['updated'],
+						'skipped' => $importer_result['skipped'],
+						'failed'  => $importer_result['failed'],
+						'next' 	  => $throttle['next-page'],
+						'nexturi' => $this->_uri . '/importers/run/' . $this->_context[1] . '/?' . $pagination['variable'] . '=' . $throttle['next-page'],
+						'errors'  => $failedEntries->generate()
+					));
+
+					die;
+				}
 			}
 		}
 
@@ -458,6 +521,18 @@
 					? 'yes'
 					: 'no'
 			);
+
+			// pagination/throttling settings
+
+			// validate has next page xpath
+			if (!empty($fields['pagination']['next'])){
+				try {
+					$this->_driver->validateXPath($fields['pagination']['next'], $fields['namespaces']);
+				}
+				catch (Exception $e) {
+					$this->_errors['pagination']['next'] = $e->getMessage();
+				}
+			}
 
 			$this->_fields = $fields;
 
@@ -672,6 +747,81 @@
 			$fieldset->appendChild($label);
 			$this->Form->appendChild($fieldset);
 
+		// Pagination --------------------------------------------------
+
+
+			$fieldset = new XMLElement('fieldset');
+			$fieldset->setAttribute('class', 'settings');
+			$fieldset->appendChild(new XMLElement('legend', __('Throttling')));
+
+			$group = new XMLElement('div');
+			$group->setAttribute('class', 'two columns');
+
+			$label = Widget::Label(__('Pagination Variable <i>Optional</i>'));
+			$label->setAttribute('class', 'column');
+			$input = Widget::Input(
+				'fields[pagination][variable]',
+				General::sanitize(
+					isset($this->_fields['pagination']['variable'])
+						? $this->_fields['pagination']['variable']
+						: null
+				)
+			);
+			$input->setAttribute('placeholder', 'p');
+			$label->appendChild($input);
+
+			if (isset($this->_errors['variable'])) {
+				$label = Widget::Error($label, $this->_errors['variable']);
+			}
+
+			$group->appendChild($label);
+
+			$label = Widget::Label(__('Start Page <i>Optional</i>'));
+			$label->setAttribute('class', 'column');
+			$input = Widget::Input(
+				'fields[pagination][start]',
+				General::sanitize(
+					isset($this->_fields['pagination']['start'])
+						? $this->_fields['pagination']['start']
+						: null
+				)
+			);
+			$input->setAttribute('placeholder', '1');
+			$label->appendChild($input);
+
+			$fieldset->appendChild($group);
+
+			$group->appendChild($label);
+			$help = new XMLElement('p');
+			$help->setAttribute('class', 'help');
+			$help->setValue(__('The pagination variable has to be included within your Datasource as a url parameter. Not setting a variable will ignore throttling.'));
+			$fieldset->appendChild($help);
+
+			$label = Widget::Label(__('Next Page <i>Optional</i>'));
+			$input = Widget::Input(
+				'fields[pagination][next]',
+				General::sanitize(
+					isset($this->_fields['pagination']['next'])
+						? $this->_fields['pagination']['next']
+						: null
+				)
+			);
+			$input->setAttribute('placeholder', '/data/datasource/pagination/@current-page !=  /data/datasource/pagination/@total-pages');
+			$label->appendChild($input);
+
+			if (isset($this->_errors['pagination']['next'])) {
+				$label = Widget::Error($label, $this->_errors['pagination']['next']);
+			}
+
+			$fieldset->appendChild($label);
+
+			$help = new XMLElement('p');
+			$help->setAttribute('class', 'help');
+			$help->setValue(__('Use an XPath expression to determine if there is a next page (boolean).'));
+			$fieldset->appendChild($help);
+
+			$this->Form->appendChild($fieldset);
+
 		// Section ------------------------------------------------------------
 
 			$sections = SectionManager::fetch(null, 'ASC', 'name');
@@ -715,6 +865,84 @@
 					$fields = $section->fetchFields();
 
 					if ($fields === false) continue;
+
+					//entry ID markup
+						$field_id = 'entry-id';
+						// $field_name = "fields[fields][-1]";
+						$field_name = "fields[fields][id]"; //not sure that is correct but should avoid conflicts with other fields
+						$field_data = null;
+						$template_index = null;
+						if (isset($this->_fields['fields'])) {
+							foreach ($this->_fields['fields'] as $i => $temp_data) {
+								if ($temp_data['field'] != $field_id) continue;
+								$field_data = $temp_data;
+								$template_index = $i;
+								// always force the unique to entry id if exists
+								$this->_fields['unique-field'] = "entry-id";
+							}
+						}
+						$li = new XMLElement('li',"<h4>Entry ID</h4>",array('class'=>'unique template','data-type'=>'entry-id'));
+						$li->appendChild(new XMLElement('header', '<h4>Entry ID</h4>'));
+
+						$input = Widget::Input("{$field_name}[field]", $field_id, 'hidden');
+						$li->appendChild($input);
+
+						$group = new XMLElement('div');
+						$group->setAttribute('class', 'two columns');
+
+						$label = Widget::Label(__('XPath Expression'));
+						$label->setAttribute('class', 'column');
+						$input = Widget::Input(
+							"{$field_name}[xpath]",
+							General::sanitize(
+								( isset($field_data) && isset($field_data['xpath']) )
+									? $field_data['xpath']
+									: null
+							)
+						);
+						$label->appendChild($input);
+						$group->appendChild($label);
+
+						$label = Widget::Label(__('PHP Function'));
+						$label->appendChild(new XMLElement('i', __('Optional')));
+						$label->setAttribute('class', 'column');
+						$input = Widget::Input(
+							"{$field_name}[php]",
+							General::sanitize(
+								( isset($field_data) && isset($field_data['php']) )
+									? $field_data['php']
+									: null
+							)
+						);
+						$label->appendChild($input);
+						$group->appendChild($label);
+
+						$li->appendChild($group);
+
+						$label = Widget::Label();
+						$label->setAttribute('class', 'meta');					
+
+						$label->setValue(__('Entry ID is used to determine uniqeness.'));
+
+						$li->appendChild($label);
+						$section_fields->appendChild($li);
+
+						if (!is_null($field_data)){
+							//clone to avoid re-setting all the variables
+							$newLi = clone $li;
+							$newLi->setAttribute('class', 'unique');
+
+							//an entry ID must be unique - check only when showing in selected view
+							$input = Widget::Input("fields[unique-field]", $field_id, 'radio');
+							$input->setAttribute("checked","checked");
+							$input->setAttribute("style","display:none");
+							$newLi->appendChild($input);
+
+							//append item to the field list
+							$section_fields->appendChild($newLi);
+						}
+
+					//end entry id
 
 					// Templates
 					foreach ($fields as $index => $field) {

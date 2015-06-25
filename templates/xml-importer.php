@@ -33,6 +33,15 @@ class XMLImporter%s extends XMLImporter {
         );
     }
 
+    public function pagination()
+    {
+        return array(
+            'variable' => %s,
+            'start' => %s,
+            'next' => %s,
+        );
+    }
+
     public function allowEditorToParse()
     {
         return true;
