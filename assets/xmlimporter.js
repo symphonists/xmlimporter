@@ -9,7 +9,7 @@
 			namespaces = $('div.frame.namespaces');
 
 		// Preview Datasources
-		datasources.on('change load', function() {
+		datasources.on('change', function() {
 			if(!this.value) {
 				return;
 			}
@@ -39,7 +39,7 @@
 				},
 				dataType: 'xml'
 			});
-		});
+		}).change();
 
 		// Initialise Duplicators
 		namespaces.add(fields).symphonyDuplicator({
