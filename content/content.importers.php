@@ -1293,7 +1293,11 @@
 
 			return array(
 				'env' => array(
-					'url' => $context
+					'url' => $context,
+					'pool' => array(
+						'root' => URL,
+						'workspace' => URL . '/workspace'
+					)
 				)
 			);
 		}
