@@ -113,13 +113,6 @@
 				)
 			));
 
-			$button = Widget::Anchor(
-				__('Edit XML Importer'),
-				$this->_uri . '/importers/edit/' . $this->_context[1] . '/',
-				__('Edit XML Importer'),
-				'button'
-			);
-
 			$this->appendSubheading(__('Status Report'), $button);
 			$this->insertBreadcrumbs(array(
 				Widget::Anchor(__('XML Importers'), $this->_uri . '/importers/'),
