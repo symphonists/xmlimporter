@@ -235,17 +235,20 @@
 						}
 					}
 
-					// Import valid anyway
-					$button = Widget::Anchor(
-						__('Import valid entries'),
-						$this->_uri . '/importers/run/' . $this->_context[1] . '/?force=yes',
-						__('Import valid entries'),
-						'button'
-					);
-
-					$summary['action'] = $button;
 					$summary['failed'] = count($summary['errors']);
 					$summary['skipped'] = count($entries) - $summary['failed'];
+
+					// Import valid anyway
+					if ($summary['skipped'] > 0) {
+						$button = Widget::Anchor(
+							__('Import valid entries'),
+							$this->_uri . '/importers/run/' . $this->_context[1] . '/?force=yes',
+							__('Import valid entries'),
+							'button'
+						);
+
+						$summary['action'] = $button;
+					}
 
 					###
 					# Delegate: XMLImporterImportPostRunErrors
@@ -300,11 +303,33 @@
 				// No errors
 				if (empty($errors)) {
 					$message = new XMLElement('p', __('The import has run successfully without any errors.'));
+					$remove = new XMLElement('a', __('Hide report'), array('href' => '#wrapper', 'class' => 'xml-importer-report-hide'));
+					$message->appendChild($remove);
 					$fieldset->appendChild($message);
 				}
 
-				// Display errors
+				// Display global errors
+				else if($summary['status'] === __('Invalid')) {
+					$message = new XMLElement('p', __('The import failed due to the following errors:'));
+					$remove = new XMLElement('a', __('Hide report'), array('href' => '#wrapper', 'class' => 'xml-importer-report-hide'));
+					$message->appendChild($remove);
+					$fieldset->appendChild($message);
+
+					$list = new XMLElement('ul');
+					foreach ($summary['errors'] as $error) {
+						$item = new XMLElement('li', $error);
+						$list->appendChild($item);
+					}
+					$fieldset->appendChild($list);
+				}
+
+				// Display entry errors
 				else {
+					$message = new XMLElement('p', __('The import failed due to the following errors:'));
+					$remove = new XMLElement('a', __('Hide report'), array('href' => '#wrapper', 'class' => 'xml-importer-report-hide'));
+					$message->appendChild($remove);
+					$fieldset->appendChild($message);
+
 					$list = new XMLElement('ol', null, array('class' => 'xml-importer-errors'));
 					foreach ($summary['errors'] as $entry) {
 						$item = new XMLElement('li');
@@ -320,13 +345,17 @@
 						$list->appendChild($item);
 
 						// Source
-						$sources = new XMLElement('div', null, array('class' => 'two columns'));
-						$list->appendChild($sources);
+						$duplicator = new XMLElement('div', null, array('class' => 'frame'));
+						$sources = new XMLElement('ol');
+						$duplicator->appendChild($sources);
+						$item->appendChild($duplicator);
 
 						// Input
-						$source = new XMLElement('div', null, array('class' => 'column'));
-						$input = new XMLElement('h3', __('Input'));
-						$source->appendChild($input);
+						$source = new XMLElement('li');
+						$header = new XMLElement('header', null, array('class' => 'frame-header'));
+						$input = new XMLElement('h4', '<strong>' . __('Source Data') . '</strong><span class="type">' . __('Datasource XML') . '</span>');
+						$header->appendChild($input);
+						$source->appendChild($header);
 
 						$xml = new DOMDocument();
 						$xml->preserveWhiteSpace = false;
@@ -346,9 +375,11 @@
 						$sources->appendChild($source);
 
 						// Output
-						$source = new XMLElement('div', null, array('class' => 'column'));
-						$output = new XMLElement('h3', __('Output'));
-						$source->appendChild($output);
+						$source = new XMLElement('li');
+						$header = new XMLElement('header', null, array('class' => 'frame-header'));
+						$output = new XMLElement('h4','<strong>' . __('Import Data') . '</strong><span class="type">' . __('Symphony Entry') . '</span>');
+						$header->appendChild($output);
+						$source->appendChild($header);
 
 						$values = $entry['values'];
 						array_walk_recursive($values, function (&$value) {

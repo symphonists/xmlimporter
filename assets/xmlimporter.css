@@ -26,29 +26,45 @@ table .button {
 	margin: -0.3rem 0;
 }
 
+.xml-importer-reports {
+	position: relative;
+}
+
 .xml-importer-run {
-	display: none;
+	position: absolute !important;
+	top: 0;
+	box-sizing: border-box;
+	width: calc(100% - 3.6rem);
 	margin-top: 5rem !important;
 	border-top: 0.1rem solid rgba(0, 0, 0, 0.1) !important;
+	opacity: 0;
+	z-index: 0;
+	transition: opacity 0.25s ease-in;
+	height: 50vh;
+	overflow: hidden;
 }
 
 .xml-importer-run:target {
-	display: block;
+	opacity: 1;
+	z-index: 100;
+	transition: none;
+	height: auto;
+}
+
+.xml-importer-run p {
+	padding: 0 0 0.8rem 0;
+	border-bottom: 0.1rem solid rgba(0, 0, 0, 0.1);
+}
+
+.xml-importer-report-hide {
+	float: right;
+	color: #b4b4b4;
+	border: none;
 }
 
 .xml-importer-run h2 {
-	margin: 2rem 0 1.5rem;
+	margin: 3rem 0 0.8rem;
 	padding: 0 !important;
-}
-
-.xml-importer-run h2:first-of-type {
-	margin-top: 0;
-}
-
-.xml-importer-run h3 {
-	margin-bottom: 0.7rem;
-	color: rgba(0, 0, 0, 0.6);
-	font-weight: 400;
 }
 
 .xml-importer-run ol {
@@ -58,7 +74,7 @@ table .button {
 
 .xml-importer-run ul {
 	position: relative;
-	margin: 1.5rem 0;
+	margin: 0.8rem 0 1.5rem;
 	padding-left: 1.2rem;
 }
 
@@ -69,23 +85,21 @@ table .button {
 	left: 0;
 }
 
-.xml-importer-run .columns {
-	width: calc(100vw - 1.8rem);
+.xml-importer-run .frame {
+	margin-bottom: 0;
 }
 
-@media screen and (min-width: 700px) {
-	.xml-importer-run .columns {
-		width: calc(100vw - 29.5rem);
-	}
+.xml-importer .frame .content {
+	overflow: auto;
 }
 
-@media screen and (max-width: 1200px) {
-	.xml-importer-run .column {
-		width: 100% !important;
-	}
+.xml-importer-run pre {
+	max-width: calc(100vw - 33.3rem);
+	margin: 0;
+	background-color: transparent;
 }
 
 .xml-importer-run pre code {
-	overflow: auto;
-	height: 25rem;
+	padding: 0;
+	border: none;
 }

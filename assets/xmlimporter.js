@@ -6,7 +6,15 @@
 			preview = $('.xml-importer-preview'),
 			fields = $('div.frame.section-fields'),
 			label = sections.parents('fieldset').find('p.label'),
-			namespaces = $('div.frame.namespaces');
+			namespaces = $('div.frame.namespaces'),
+			sources = $('.xml-importer-reports .frame');
+
+		// Report sources
+		sources.symphonyDuplicator({
+			collapsible: true,
+			constructable: false,
+			destructable: false
+		}).trigger('collapseall.collapsible');
 
 		// Preview Datasources
 		datasources.on('change', function() {
