@@ -33,27 +33,33 @@ table .button {
 .xml-importer-run {
 	position: absolute !important;
 	top: 0;
+	overflow: hidden;
 	box-sizing: border-box;
 	width: calc(100% - 3.6rem);
+	height: 50vh;
 	margin-top: 5rem !important;
 	border-top: 0.1rem solid rgba(0, 0, 0, 0.1) !important;
+	-webkit-transition: opacity 0.25s ease-in;
+	transition: opacity 0.25s ease-in;
 	opacity: 0;
 	z-index: 0;
-	transition: opacity 0.25s ease-in;
-	height: 50vh;
-	overflow: hidden;
 }
 
 .xml-importer-run:target {
+	height: auto;
+	-webkit-transition: none;
+	transition: none;
 	opacity: 1;
 	z-index: 100;
-	transition: none;
-	height: auto;
 }
 
 .xml-importer-run p {
 	padding: 0 0 0.8rem 0;
 	border-bottom: 0.1rem solid rgba(0, 0, 0, 0.1);
+}
+
+.xml-importer-run p:last-child {
+	border-bottom: none;
 }
 
 .xml-importer-report-hide {
