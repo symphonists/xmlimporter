@@ -1,15 +1,91 @@
-.xml-importer-run ol,
-.xml-importer-run p {
-	margin-top: 1em;
-}
-.xml-importer-run ol li {
-	list-style: decimal;
-}
+
+/* Preview */
 
 .xml-importer-preview {
 	height: 15rem;
 	font: 1.1rem/1.5 Monaco,Consolas,'Andale Mono',monospace;
 	white-space: pre;
 	-moz-tab-size: 4;
+	-o-tab-size: 4;
 	tab-size: 4;
+}
+
+/* Reporting */
+
+body {
+	scroll-behavior: smooth;
+}
+
+@media screen and (min-width: 700px) {
+	td:first-child {
+		width: 25.5rem;
+	}
+}
+
+table .button {
+	margin: -0.3rem 0;
+}
+
+.xml-importer-run {
+	display: none;
+	margin-top: 5rem !important;
+	border-top: 0.1rem solid rgba(0, 0, 0, 0.1) !important;
+}
+
+.xml-importer-run:target {
+	display: block;
+}
+
+.xml-importer-run h2 {
+	margin: 2rem 0 1.5rem;
+	padding: 0 !important;
+}
+
+.xml-importer-run h2:first-of-type {
+	margin-top: 0;
+}
+
+.xml-importer-run h3 {
+	margin-bottom: 0.7rem;
+	color: rgba(0, 0, 0, 0.6);
+	font-weight: 400;
+}
+
+.xml-importer-run ol {
+	margin-left: 0;
+	list-style: none;
+}
+
+.xml-importer-run ul {
+	position: relative;
+	margin: 1.5rem 0;
+	padding-left: 1.2rem;
+}
+
+.xml-importer-run ul li::before {
+	content: '–';
+	display: block;
+	position: absolute;
+	left: 0;
+}
+
+.xml-importer-run .columns {
+	width: calc(100vw - 1.8rem);
+}
+
+@media screen and (min-width: 700px) {
+	.xml-importer-run .columns {
+		width: calc(100vw - 29.5rem);
+	}
+}
+
+@media screen and (max-width: 1200px) {
+	.xml-importer-run .column {
+		width: 100% !important;
+	}
+}
+
+.xml-importer-run pre code {
+	overflow: auto;
+	height: 25rem;
 }

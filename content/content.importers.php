@@ -17,6 +17,7 @@
 		protected $_fields = array();
 		protected $_status = '';
 		protected $_runs = array();
+		protected $_summaries = array();
 		protected $_importers = array();
 		protected $_uri = null;
 		protected $_valid = true;
@@ -48,54 +49,6 @@
 			}
 
 			parent::build($context);
-		}
-
-		public function addFailedEntries(XMLElement &$fieldset, array $failed_entries) {
-			foreach ($failed_entries as $index => $current) {
-				$fieldset->appendChild(new XMLElement(
-					'h3', __('Import entry #%d', array($current['position']))
-				));
-
-			// Errors -------------------------------------------------
-
-				$list = new XMLElement('ol');
-
-				foreach ($current['errors'] as $error) {
-					$list->appendChild(new XMLElement('li', $error));
-				}
-
-				$fieldset->appendChild($list);
-
-			// Source -------------------------------------------------
-
-				$entry = $current['element'];
-				$xml = new DOMDocument();
-				$xml->preserveWhiteSpace = false;
-				$xml->formatOutput = true;
-
-				if(is_null($entry->ownerDocument)) {
-					$xml->loadXML($entry->saveXML());
-				}
-				else {
-					$xml->loadXML($entry->ownerDocument->saveXML($entry));
-				}
-
-				$source = htmlentities($xml->saveXML($xml->documentElement), ENT_COMPAT, 'UTF-8');
-
-				$fieldset->appendChild(new XMLElement(
-					'pre', "<code>{$source}</code>"
-				));
-
-				foreach ($current['values'] as $field => $value) {
-					if(is_array($value)) $value = implode(',', $value);
-					$values[$field] = htmlentities($value);
-				}
-
-				$fieldset->appendChild(new XMLElement(
-					'pre',
-					"<code>" . var_export($values, true) . "</code>"
-				));
-			}
 		}
 
 	/*-------------------------------------------------------------------------
@@ -156,7 +109,7 @@
 				array(
 					__('Symphony'),
 					__('XML Importers'),
-					__('Run XML Importer')
+					__('Status Report')
 				)
 			));
 
@@ -167,63 +120,127 @@
 				'button'
 			);
 
-			$this->appendSubheading(__('Run XML Importer'), $button);
+			$this->appendSubheading(__('Status Report'), $button);
+			$this->insertBreadcrumbs(array(
+				Widget::Anchor(__('XML Importers'), $this->_uri . '/importers/'),
+			));
 
 			if(empty($this->_runs)) {
 				$this->pageAlert(__('The XMLImporter %s could not be found.', array('<code>' . $this->_context[1] . '</code>')), Alert::ERROR);
 				return false;
 			}
 
+			// Summary
+			$this->prepareSummary();
+
+			// Table header
+			$tableHead = array(
+				array(__('Importer'), 'col'),
+				array(__('Status'), 'col'),
+				array(__('Created'), 'col'),
+				array(__('Updated'), 'col'),
+				array(__('Skipped'), 'col'),
+				array(__('Failed'), 'col'),
+				array(__('Action'), 'col')
+			);
+
+			// Table body
+			$tableBody = array();
+			foreach ($this->_summaries as $summary) {
+				$tableBody[] = Widget::TableRow(
+					array(
+						Widget::TableData(
+							Widget::Anchor($summary['name'], $this->_uri . '/importers/edit/' . $summary['handle'])
+						),
+						Widget::TableData(
+							Widget::Anchor($summary['status'], Symphony::Engine()->getCurrentPageURL() . '#report-' . $summary['handle'])
+						),
+						Widget::TableData($summary['created']),
+						Widget::TableData($summary['updated']),
+						Widget::TableData($summary['skipped']),
+						Widget::TableData($summary['failed']),
+						Widget::TableData($summary['action'], ($summary['action'] === __('None') ? 'inactive' : ''))
+					),
+					$summary['class']
+				);
+			}
+
+			// Summary table
+			$table = Widget::Table(
+				Widget::TableHead($tableHead),
+				null,
+				Widget::TableBody($tableBody),
+				null,
+				null,
+				array(
+					'role' => 'directory',
+					'aria-labelledby' => 'symphony-subheading',
+					'data-interactive' => 'data-interactive'
+				)
+			);
+			$this->Form->appendChild($table);
+
+			// Errors
+			$this->buildErrorSummary();
+
+			###
+			# Delegate: XMLImporterImportPostRun
+			# Description: All Importers run successfully
+			Symphony::ExtensionManager()->notifyMembers(
+				'XMLImporterImportPostRun', '/xmlimporter/importers/run/',
+				array(
+					'created' => $importer_result['created'],
+					'updated' => $importer_result['updated'],
+					'skipped' => $importer_result['skipped'],
+					'failed'  => $importer_result['failed'],
+					'entries' => $entries
+				)
+			);
+		}
+
+		private function prepareSummary() {
 			foreach ($this->_runs as $run) {
 				$importer = $run['importer'];
 				$status = $run['status'];
 				$entries = $importer->getEntries();
 				$about = $importer->about();
 
-				$fieldset = new XMLElement('fieldset');
-				$fieldset->setAttribute('class', 'settings xml-importer-run');
-				$fieldset->appendChild(new XMLElement('legend', $about['name']));
-
 				$failed = array();
-				$importer_result = array(
+				$summary = array(
+					'name' => $about['name'],
+					'handle' => Lang::createHandle($about['name']),
+					'class' => '',
+					'status' => '',
+					'action' => __('None'),
 					'created' => 0,
 					'updated' => 0,
 					'skipped' => 0,
-					'failed'  => 0
+					'failed'  => 0,
+					'errors' => array()
 				);
 
 				// Markup invalid:
 				if ($status == XMLImporter::__ERROR_PREPARING__) {
-					$fieldset->appendChild(new XMLElement(
-						'h3', __('Import Failed')
-					));
-
-					$list = new XMLElement('ol');
-
+					$summary['class'] = 'status-error';
+					$summary['status'] = __('Invalid');
+					$summary['failed'] = 'all';
 					foreach ($importer->getErrors() as $error) {
-						$list->appendChild(new XMLElement('li', $error));
+						$summary['errors'][] = $error;
 					}
-
-					$fieldset->appendChild($list);
 				}
 
 				// Invalid entry:
 				else if ($status == XMLImporter::__ERROR_VALIDATING__) {
-					$fieldset->appendChild(new XMLElement(
-						'h3', __('Import Failed')
-					));
+					$summary['class'] = 'status-error';
+					$summary['status'] = __('Invalid entries');
 
 					// Gather statistics:
-					foreach ($entries as $index => $current) if (!empty($current['errors'])) {
-						$current['position'] = $index + 1;
-						$failed[] = $current;
+					foreach ($entries as $index => $current) {
+						if (!empty($current['errors'])) {
+							$current['position'] = $index + 1;
+							$summary['errors'][] = $current;
+						}
 					}
-
-					$fieldset->appendChild(new XMLElement(
-						'p', __('Import failed because %d entries did not validate, a total of %d entries passed.', array(
-							count($failed), count($entries) - count($failed)
-						))
-					));
 
 					// Import valid anyway
 					$button = Widget::Anchor(
@@ -233,14 +250,9 @@
 						'button'
 					);
 
-					$fieldset->appendChild($button);
-
-					// Import errors
-					$fieldset->appendChild(new XMLElement(
-						'h3', __('Import Errors')
-					));
-
-					$this->addFailedEntries($fieldset, $failed);
+					$summary['action'] = $button;
+					$summary['failed'] = count($summary['errors']);
+					$summary['skipped'] = count($entries) - $summary['failed'];
 
 					###
 					# Delegate: XMLImporterImportPostRunErrors
@@ -255,74 +267,161 @@
 
 				// Invalid entry:
 				else if ($status == XMLImporter::__PARTIAL_OK__) {
-					$fieldset->appendChild(new XMLElement(
-						'h3', __('Import Partially Complete')
-					));
+					$summary['class'] = 'status-error';
+					$summary['status'] = __('Partially complete');
 
 					// Gather statistics:
 					foreach ($entries as $index => $current) {
 						if (!empty($current['errors'])) {
 							$current['position'] = $index + 1;
-							$failed[] = $current;
-							$importer_result++;
+							$summary['errors'][] = $current;
 						}
 
-						$importer_result[$current['entry']->get('importer_status')]++;
+						$summary[$current['entry']->get('importer_status')]++;
 					}
-
-					$fieldset->appendChild(new XMLElement(
-						'p', __('Import partially completed successfully: %d new entries were created, %d updated, %d were skipped and %d failed.', array(
-							$importer_result['created'],
-							$importer_result['updated'],
-							$importer_result['skipped'],
-							$importer_result['failed']
-						))
-					));
-
-					// Import errors
-					$fieldset->appendChild(new XMLElement(
-						'h3', __('Import Errors')
-					));
-
-					$this->addFailedEntries($fieldset, $failed);
 				}
 
 				// Passed:
 				else {
-					$fieldset->appendChild(new XMLElement(
-						'h3', __('Import Complete')
-					));
-
+					$summary['class'] = 'status-ok';
+					$summary['status'] = __('Complete');
 					foreach ($entries as $entry) {
-						$importer_result[$entry['entry']->get('importer_status')]++;
+						$summary[$entry['entry']->get('importer_status')]++;
 					}
-
-					$fieldset->appendChild(new XMLElement(
-						'p', __(
-							'Import completed successfully: %d new entries were created, %d updated, and %d skipped.', array(
-							$importer_result['created'],
-							$importer_result['updated'],
-							$importer_result['skipped']
-						))
-					));
-
 				}
 
-				$this->Form->appendChild($fieldset);
+				$this->_summaries[] = $summary;
+			}
+		}
 
-				###
-				# Delegate: XMLImporterImportPostRun
-				# Description: All Importers run successfully
-				Symphony::ExtensionManager()->notifyMembers(
-					'XMLImporterImportPostRun', '/xmlimporter/importers/run/',
-					array(
-						'created' => $importer_result['created'],
-						'updated' => $importer_result['updated'],
-						'skipped' => $importer_result['skipped'],
-						'failed'  => $importer_result['failed'],
-						'entries' => $entries
-					)
-				);
+		private function buildErrorSummary() {
+			foreach ($this->_summaries as $summary) {
+				$errors = $summary['errors'];
+
+				$wrapper = new XMLElement('div', null, array('class' => 'xml-importer-reports'));
+				$fieldset = new XMLElement('fieldset');
+				$fieldset->setAttribute('id', 'report-' . $summary['handle']);
+				$fieldset->setAttribute('class', 'settings xml-importer-run');
+				$fieldset->appendChild(new XMLElement('legend', __('Report for %s', array($summary['name']))));
+
+				// No errors
+				if (empty($errors)) {
+					$message = new XMLElement('p', __('The import has run successfully without any errors.'));
+					$fieldset->appendChild($message);
+				}
+
+				// Display errors
+				else {
+					$list = new XMLElement('ol', null, array('class' => 'xml-importer-errors'));
+					foreach ($summary['errors'] as $entry) {
+						$item = new XMLElement('li');
+						$title = new XMLElement('h2', __('Entry #%d', array($entry['position'])));
+
+						$details = new XMLElement('ul');
+						foreach($entry['errors'] as $error) {
+							$details->appendChild(new XMLElement('li', $error));
+						}
+
+						$item->appendChild($title);
+						$item->appendChild($details);
+						$list->appendChild($item);
+
+						// Source
+						$sources = new XMLElement('div', null, array('class' => 'two columns'));
+						$list->appendChild($sources);
+
+						// Input
+						$source = new XMLElement('div', null, array('class' => 'column'));
+						$input = new XMLElement('h3', __('Input'));
+						$source->appendChild($input);
+
+						$xml = new DOMDocument();
+						$xml->preserveWhiteSpace = false;
+						$xml->formatOutput = true;
+
+						if(is_null($entry['element']->ownerDocument)) {
+							$xml->loadXML($entry['element']->saveXML());
+						}
+						else {
+							$xml->loadXML($entry['element']->ownerDocument->saveXML($entry['element']));
+						}
+
+						$code = htmlentities($xml->saveXML($xml->documentElement), ENT_COMPAT, 'UTF-8');
+						$source->appendChild(new XMLElement(
+							'pre', "<code>{$code}</code>"
+						));
+						$sources->appendChild($source);
+
+						// Output
+						$source = new XMLElement('div', null, array('class' => 'column'));
+						$output = new XMLElement('h3', __('Output'));
+						$source->appendChild($output);
+
+						$values = $entry['values'];
+						array_walk_recursive($values, function (&$value) {
+						    $value = htmlentities($value);
+						});
+
+						$source->appendChild(new XMLElement(
+							'pre',
+							"<code>" . json_encode($values, JSON_PRETTY_PRINT) . "</code>"
+						));
+						$sources->appendChild($source);
+					}
+
+					$fieldset->appendChild($list);
+				}
+
+				$wrapper->appendChild($fieldset);
+				$this->Form->appendChild($wrapper);
+			}
+		}
+
+		public function addFailedEntries(XMLElement &$fieldset, array $failed_entries) {
+			foreach ($failed_entries as $index => $current) {
+				$fieldset->appendChild(new XMLElement(
+					'h3', __('Import entry #%d', array($current['position']))
+				));
+
+			// Errors -------------------------------------------------
+
+				$list = new XMLElement('ol');
+
+				foreach ($current['errors'] as $error) {
+					$list->appendChild(new XMLElement('li', $error));
+				}
+
+				$fieldset->appendChild($list);
+
+			// Source -------------------------------------------------
+
+				$entry = $current['element'];
+				$xml = new DOMDocument();
+				$xml->preserveWhiteSpace = false;
+				$xml->formatOutput = true;
+
+				if(is_null($entry->ownerDocument)) {
+					$xml->loadXML($entry->saveXML());
+				}
+				else {
+					$xml->loadXML($entry->ownerDocument->saveXML($entry));
+				}
+
+				$source = htmlentities($xml->saveXML($xml->documentElement), ENT_COMPAT, 'UTF-8');
+
+				$fieldset->appendChild(new XMLElement(
+					'pre', "<code>{$source}</code>"
+				));
+
+				$values = $current['values'];
+				array_walk_recursive($values, function (&$value) {
+				    $value = htmlentities($value);
+				});
+
+				$fieldset->appendChild(new XMLElement(
+					'pre',
+					"<code>" . json_encode($values, JSON_PRETTY_PRINT) . "</code>"
+				));
 			}
 		}
 
