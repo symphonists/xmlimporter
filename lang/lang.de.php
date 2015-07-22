@@ -55,10 +55,10 @@
 		'Gültige Einträge importieren',
 
 		'Partially complete' =>
-		'Teilweise ausgeführt',
+		'Teilweise fertig',
 
 		'Complete' =>
-		'Ausgeführt',
+		'Fertig',
 
 		'Report for %s' =>
 		'Bericht für %s',
