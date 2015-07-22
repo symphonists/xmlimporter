@@ -153,7 +153,7 @@
 							Widget::Anchor($summary['name'], $this->_uri . '/importers/edit/' . $summary['handle'])
 						),
 						Widget::TableData(
-							Widget::Anchor($summary['status'], Symphony::Engine()->getCurrentPageURL() . '#report-' . $summary['handle'])
+							Widget::Anchor($summary['status'], '#report-' . $summary['handle'])
 						),
 						Widget::TableData($summary['created']),
 						Widget::TableData($summary['updated']),
