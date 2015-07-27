@@ -198,4 +198,10 @@
 		'\'%s\' expression <code>%s</code> is invalid.' =>
 		'\'%s\' Der Ausdruck <code>%s</code> ist ungültig.',
 
+		'Run all' =>
+		'Alle ausführen',
+
+		'Run all XML Importers' =>
+		'Alle XML-Importe ausführen'
+
 	);

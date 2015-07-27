@@ -9,10 +9,18 @@
 	-------------------------------------------------------------------------*/
 
 		public function fetchNavigation() {
+			$settings  = Symphony::Configuration()->get('xml-importer');
+			$location = __('Blueprints');
+			$name = __('XML Importers');
+
+			if (!empty($settings) && $settings['author-access'] === true && Symphony::Author()->get('user_type') !== 'developer') {
+				$location = __('System');
+			}
+
 			return array(
 				array(
-					'location'	=> __('Blueprints'),
-					'name'		=> __('XML Importers'),
+					'location'	=> $location,
+					'name'		=> $name,
 					'link'		=> '/importers/'
 				)
 			);
