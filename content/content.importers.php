@@ -263,6 +263,9 @@
 
 						$summary['action'] = $button;
 					}
+					else {
+						$summary['action'] = Widget::Anchor(__('Check report'),	'#report-' . $summary['handle']);
+					}
 
 					###
 					# Delegate: XMLImporterImportPostRunErrors
