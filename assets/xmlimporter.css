@@ -2,6 +2,8 @@
 /* Preview */
 
 #xml-importer-preview {
+	overflow-x: hidden;
+	width: calc(100vw - 31.3rem);
 	min-height: 15rem;
 	max-height: 50vh;
 }
