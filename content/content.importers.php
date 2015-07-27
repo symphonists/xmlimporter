@@ -100,6 +100,14 @@
 		}
 
 		public function __viewRun() {
+			$this->addStylesheetToHead(URL . '/extensions/xmlimporter/assets/prism.css', 'screen', 101);
+			$this->addElementToHead(
+				new XMLElement('script', null, array(
+					'src' => URL . '/extensions/xmlimporter/assets/prism.js',
+					'data-manual' => 'true'
+				)),
+				102
+			);
 			$this->addStylesheetToHead(URL . '/extensions/xmlimporter/assets/xmlimporter.css', 'screen', 103);
 			$this->addScriptToHead(URL . '/extensions/xmlimporter/assets/xmlimporter.js', 104);
 
@@ -378,7 +386,9 @@
 
 						$code = htmlentities($xml->saveXML($xml->documentElement), ENT_COMPAT, 'UTF-8');
 						$source->appendChild(new XMLElement(
-							'pre', "<code>{$code}</code>"
+							'pre',
+							"<code>{$code}</code>",
+							array('class' => 'language-markup', '')
 						));
 						$sources->appendChild($source);
 
@@ -396,7 +406,8 @@
 
 						$source->appendChild(new XMLElement(
 							'pre',
-							"<code>" . json_encode($values, JSON_PRETTY_PRINT) . "</code>"
+							"<code>" . preg_replace('/"(.+)":/', '$1:', json_encode($values, JSON_PRETTY_PRINT)) . "</code>",
+							array('class' => 'language-javascript')
 						));
 						$sources->appendChild($source);
 					}
@@ -623,6 +634,14 @@
 		}
 
 		public function __viewEdit() {
+			$this->addStylesheetToHead(URL . '/extensions/xmlimporter/assets/prism.css', 'screen', 101);
+			$this->addElementToHead(
+				new XMLElement('script', null, array(
+					'src' => URL . '/extensions/xmlimporter/assets/prism.js',
+					'data-manual' => 'true'
+				)),
+				102
+			);
 			$this->addStylesheetToHead(URL . '/extensions/xmlimporter/assets/xmlimporter.css', 'screen', 103);
 			$this->addScriptToHead(URL . '/extensions/xmlimporter/assets/xmlimporter.js', 104);
 
@@ -776,10 +795,15 @@
 			$fieldset->appendChild($label);
 
 			$label = Widget::Label(__('Preview'));
-			$label->appendChild(Widget::Textarea('preview', 10, 15, "<data>\n\t<error>" . __('No DataSource selected.') . "</error>\n</data>", array(
-				'readonly' => 'readonly',
-				'class' => 'xml-importer-preview'
-			)));
+			$pre = new XMLElement('pre', null, array(
+				'id' => 'xml-importer-preview',
+				'class' => 'language-markup'
+			));
+			$code = new XMLElement('code', htmlspecialchars("<data>\n\t<error>" . __('No DataSource selected.') . "</error>\n</data>"), array(
+				'class' => 'language-markup'
+			));
+			$pre->appendChild($code);
+			$label->appendChild($pre);
 			$fieldset->appendChild($label);
 
 		// Included Elements --------------------------------------------------

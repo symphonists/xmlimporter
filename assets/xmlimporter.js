@@ -3,7 +3,8 @@
 	$(document).ready(function() {
 		var sections = $('select[name="fields[section]"]'),
 			datasources = $('#ds-context'),
-			preview = $('.xml-importer-preview'),
+			preview = $('#xml-importer-preview'),
+			code = preview.find('code'),
 			fields = $('div.frame.section-fields'),
 			label = sections.parents('fieldset').find('p.label'),
 			namespaces = $('div.frame.namespaces'),
@@ -14,7 +15,11 @@
 			collapsible: true,
 			constructable: false,
 			destructable: false
-		}).trigger('collapseall.collapsible');
+		}).trigger('collapseall.collapsible')
+
+		sources.find('.instance').on('expandbefore.collapsible', function() {
+			Prism.highlightElement(this.querySelector('code'));
+		});
 
 		// Preview Datasources
 		datasources.on('change', function() {
@@ -22,7 +27,7 @@
 				return;
 			}
 
-			preview.val('');
+			code.text('');
 
 			$.ajax({
 				url: Symphony.Context.get('symphony') + '/extension/xmlimporter/datasource/',
@@ -38,16 +43,28 @@
 					xml = serializer.serializeToString(doc);
 
 					// Unify indentation
-					xml = xml.replace(new RegExp("\n\t  ", "g"), '\n      ');
-					xml = xml.replace(new RegExp("\n\t\t", "g"), '\n    ');
-					xml = xml.replace(new RegExp("\n\t", "g"), '\n  ');
-					xml = xml.replace(new RegExp("  ", "g"), '\t');
+					xml = xml.replace(new RegExp('\n\t  ', 'g'), '\n      ');
+					xml = xml.replace(new RegExp('\n\t\t', 'g'), '\n    ');
+					xml = xml.replace(new RegExp('\n\t', 'g'), '\n  ');
+					xml = xml.replace(new RegExp('  ', 'g'), '\t');
 
-					preview.val(xml);
+					// Replace special characters
+					xml.replace(/&/g, '&amp;');
+					xml.replace(/</g, '&lt;');
+					xml.replace(/>/g, '&gt;');
+					xml.replace(/'/g, '&quot;');
+					xml.replace(/'/g, '&#039;');
+
+					code.text(xml);
+					Prism.highlightElement(code[0], true);
 				},
 				dataType: 'xml'
 			});
 		}).change();
+
+		if (preview.length) {
+			Prism.highlightElement(code[0], true);
+		}
 
 		// Initialise Duplicators
 		namespaces.add(fields).symphonyDuplicator({
