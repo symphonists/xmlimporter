@@ -1173,6 +1173,8 @@
 		public function __viewIndex() {
 			$this->setPageType('table');
 			$this->setTitle(__('Symphony') . ' &ndash; ' . __('XML Importers'));
+			$this->addStylesheetToHead(URL . '/extensions/xmlimporter/assets/xmlimporter.css', 'screen', 103);
+			$this->addScriptToHead(URL . '/extensions/xmlimporter/assets/xmlimporter.js', 104);
 
 			// Actions
 			$actions = array();

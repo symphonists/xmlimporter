@@ -8,14 +8,16 @@
 			fields = $('div.frame.section-fields'),
 			label = sections.parents('fieldset').find('p.label'),
 			namespaces = $('div.frame.namespaces'),
-			sources = $('.xml-importer-reports .frame');
+			sources = $('.xml-importer-reports .frame'),
+			actionsTop = $('#context .actions a'),
+			actionsBottom = $('.apply button');
 
 		// Report sources
 		sources.symphonyDuplicator({
 			collapsible: true,
 			constructable: false,
 			destructable: false
-		}).trigger('collapseall.collapsible')
+		}).trigger('collapseall.collapsible');
 
 		sources.find('.instance').on('expandbefore.collapsible', function() {
 			Prism.highlightElement(this.querySelector('code'));
@@ -76,6 +78,23 @@
 			var id = $(this).val();
 			fields.detach().filter('#section-' + id).insertAfter(label);
 		}).trigger('change.xmlimporter');
+
+		// Import
+		actionsTop.on('click.xmlimporter', function clickTop(event) {
+			var target = $(event.target);
+
+			if (!target.is('.create')) {
+				$('#contents').addClass('xml-importer-running');
+			}
+		});
+		actionsBottom.on('click.xmlimporter', function clickBottom(event) {
+			var target = $(event.target),
+				select = target.prev('select');
+
+			if (select.length && select.val() === 'run') {
+				$('#contents').addClass('xml-importer-running');
+			}
+		});
 	});
 
 })(jQuery);
