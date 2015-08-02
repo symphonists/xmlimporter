@@ -89,7 +89,7 @@
 		});
 		actionsBottom.on('click.xmlimporter', function clickBottom(event) {
 			var target = $(event.target),
-				select = target.prev('select');
+				select = target.prev('div').find('select');
 
 			if (select.length && select.val() === 'run') {
 				$('#contents').addClass('xml-importer-running');
