@@ -74,6 +74,16 @@
 				$importer = $importManager->create($handle);
 				$importer->setContext($this->getContext());
 
+				###
+				# Delegate: XMLImporterPreRun
+				# Description: Before running an importer. Current importer object is provided.
+				Symphony::ExtensionManager()->notifyMembers(
+					'XMLImporterPreRun', '/xmlimporter/importers/run/',
+					array(
+						'importer'	=> &$importer
+					)
+				);
+
 				if($importer === false) {
 					Symphony::Log()->writeToLog(__('The XMLImporter %s could not be found.', array($handle)), E_USER_ERROR, true);
 					continue;
@@ -89,6 +99,17 @@
 				if (in_array($status, array(XMLImporter::__OK__, XMLImporter::__PARTIAL_OK__))) {
 					$importer->commit($status);
 				}
+
+				###
+				# Delegate: XMLImporterPostRun
+				# Description: After running an importer. Current importer object and status are provided.
+				Symphony::ExtensionManager()->notifyMembers(
+					'XMLImporterPostRun', '/xmlimporter/importers/run/',
+					array(
+						'importer'	=> &$importer,
+						'status'	=> &$status
+					)
+				);
 
 				$this->_runs[] = array(
 					'importer'	=> $importer,
