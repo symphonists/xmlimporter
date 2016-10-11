@@ -280,7 +280,9 @@
 							$mode = current($modes);
 						}
 
-						$value = $field->prepareImportValue($value, $mode, $entry->get('id'));
+						if ($field->get('type') != 'selectbox_link') {
+							$value = $field->prepareImportValue($value, $mode, $entry->get('id'));
+						}
 					}
 
 					// Handle different field types
