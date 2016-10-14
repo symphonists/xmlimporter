@@ -281,6 +281,7 @@
 						}
 
 						if ($field->get('type') != 'selectbox_link') {
+							var_dump($mode, $value);die;
 							$value = $field->prepareImportValue($value, $mode, $entry->get('id'));
 						}
 					}
