@@ -432,7 +432,7 @@
 					$entry->set('creation_date_gmt', $dateGMT);
 					$entry->set('modification_date', $date);
 					$entry->set('modification_date_gmt', $dateGMT);
-
+					$entry->set('modification_author_id', !Symphony::Author() ? '1' : Symphony::Author()->get('id'));
 					###
 					# Delegate: XMLImporterEntryPreCreate
 					# Description: Just prior to creation of an Entry. Entry object provided
