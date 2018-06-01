@@ -26,6 +26,9 @@
 		</author>
 	</authors>
 	<releases>
+		<release version="3.0.1" date="2018-06-01" min="2.5.0" max="2.x.x">
+			- Fix a problem with author id being unset
+		</release>
 		<release version="3.0.0" date="2017-01-06" min="2.5.0" max="2.x.x">
 			- Switched from custom data fetching to using Data Sources
 			- Allow partial import of successful entries
