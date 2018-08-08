@@ -895,6 +895,84 @@
 
 					if ($fields === false) continue;
 
+					//entry ID markup
+						$field_id = 'entry-id';
+						// $field_name = "fields[fields][-1]";
+						$field_name = "fields[fields][id]"; //not sure that is correct but should avoid conflicts with other fields
+						$field_data = null;
+						$template_index = null;
+						if (isset($this->_fields['fields'])) {
+							foreach ($this->_fields['fields'] as $i => $temp_data) {
+								if ($temp_data['field'] != $field_id) continue;
+								$field_data = $temp_data;
+								$template_index = $i;
+								// always force the unique to entry id if exists
+								$this->_fields['unique-field'] = "entry-id";
+							}
+						}
+						$li = new XMLElement('li',"<h4>Entry ID</h4>",array('class'=>'unique template','data-type'=>'entry-id'));
+						$li->appendChild(new XMLElement('header', '<h4>Entry ID</h4>'));
+
+						$input = Widget::Input("{$field_name}[field]", $field_id, 'hidden');
+						$li->appendChild($input);
+
+						$group = new XMLElement('div');
+						$group->setAttribute('class', 'two columns');
+
+						$label = Widget::Label(__('XPath Expression'));
+						$label->setAttribute('class', 'column');
+						$input = Widget::Input(
+							"{$field_name}[xpath]",
+							General::sanitize(
+								( isset($field_data) && isset($field_data['xpath']) )
+									? $field_data['xpath']
+									: null
+							)
+						);
+						$label->appendChild($input);
+						$group->appendChild($label);
+
+						$label = Widget::Label(__('PHP Function'));
+						$label->appendChild(new XMLElement('i', __('Optional')));
+						$label->setAttribute('class', 'column');
+						$input = Widget::Input(
+							"{$field_name}[php]",
+							General::sanitize(
+								( isset($field_data) && isset($field_data['php']) )
+									? $field_data['php']
+									: null
+							)
+						);
+						$label->appendChild($input);
+						$group->appendChild($label);
+
+						$li->appendChild($group);
+
+						$label = Widget::Label();
+						$label->setAttribute('class', 'meta');					
+
+						$label->setValue(__('Entry ID is used to determine uniqeness.'));
+
+						$li->appendChild($label);
+						$section_fields->appendChild($li);
+
+						if (!is_null($field_data)){
+							//clone to avoid re-setting all the variables
+							$newLi = clone $li;
+							$newLi->setAttribute('class', 'unique');
+
+							//an entry ID must be unique - check only when showing in selected view
+							$input = Widget::Input("fields[unique-field]", $field_id, 'radio');
+							$input->setAttribute("checked","checked");
+							$input->setAttribute("style","display:none");
+							$newLi->appendChild($input);
+
+							//append item to the field list
+							$section_fields->appendChild($newLi);
+						}
+
+					//end entry id
+
 					// Templates
 					foreach ($fields as $index => $field) {
 						$field_id = $field->get('id');
