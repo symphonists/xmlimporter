@@ -26,6 +26,9 @@
 		</author>
 	</authors>
 	<releases>
+		<release version="3.0.2" date="2020-11-30" min="2.5.0" max="2.x.x">
+			- Fix for PHP 7.2 and `count()`
+		</release>
 		<release version="3.0.1" date="2018-06-01" min="2.5.0" max="2.x.x">
 			- Fix a problem with author id being unset
 		</release>

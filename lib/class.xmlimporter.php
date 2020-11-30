@@ -264,10 +264,10 @@
 					$field = FieldManager::fetch($field_id);
 
 					if(is_array($value)) {
-						if(count($value) === 1) {
+						if(count(is_countable($value)) === 1) {
 							$value = current($value);
 						}
-						if(count($value) === 0) {
+						if(count(is_countable($value)) === 0) {
 							$value = '';
 						}
 					}
