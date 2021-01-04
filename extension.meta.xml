@@ -27,7 +27,7 @@
 	</authors>
 	<releases>
 		<release version="3.0.3" date="2020-12-01" min="2.5.0" max="2.x.x">
-			- Fix for PHP 7.2 and `count()` that works in PHP < 7.3 too, thanks @bzerangue!
+			- Fix for PHP 7.2 and `count()` that works in PHP &lt; 7.3 too, thanks @bzerangue!
 		</release>
 		<release version="3.0.2" date="2020-11-30" min="2.5.0" max="2.x.x">
 			- Fix for PHP 7.2 and `count()`
